@@ -1,0 +1,19 @@
+[Unit]
+Description=BinBot V18.8 GodMode LIVE (Ved)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/binbot_live
+ExecStartPre=/home/ubuntu/binbot_live/pre_start.sh
+ExecStart=/usr/bin/python3 /home/ubuntu/binbot_live/main.py
+Restart=always
+RestartSec=10
+MemoryMax=750M
+StandardOutput=journal
+StandardError=journal
+EnvironmentFile=/home/ubuntu/binbot_live/.env
+
+[Install]
+WantedBy=multi-user.target

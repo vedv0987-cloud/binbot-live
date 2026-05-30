@@ -22,6 +22,8 @@ trade_history.json
 equity_curve.json
 coin_profiles.json
 .feature_flags.json
+kelly_history.json
+selfhealer_state.json
 
 # Trade journals / telemetry (append-only logs)
 *.jsonl
@@ -36,6 +38,7 @@ coin_profiles.json
 *.pkl
 *.joblib
 .ml_cache/
+catboost_info/
 
 # Corruption backups + logs
 *.corrupted_backup_*
