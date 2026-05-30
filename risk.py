@@ -996,7 +996,20 @@ class Risk:
                     # After peak +3.5%: ATR ghost trail takes over.
                     # TP hit: SL pinned at TP → CHASE mode.
                     # Iterates REVERSED: only highest applicable rung fires per cycle.
-                    if getattr(self.cfg, "USE_MULTI_TIER_LADDER", True):
+                    if getattr(self.cfg, 'PROFIT_LADDER_ENABLED', False) and pos.atr > 0 and pos.avg_entry > 0:
+                        # v18.8.7 PROFIT LADDER: ATR-stepped rungs replace the fixed-% group table.
+                        # Spacing = ATR_MULT × (ATR / entry), so each rung scales with the coin's own
+                        # volatility. Reuses the proven SL-ratchet loop below — only the rung SOURCE
+                        # changes; per-rung partial sells are min-notional-gated further down.
+                        _atr_pct = pos.atr / pos.avg_entry
+                        _ladder_step = max(0.005, _atr_pct * getattr(self.cfg, 'PROFIT_LADDER_ATR_MULT', 1.0))
+                        _ladder_buf = getattr(self.cfg, 'PROFIT_LADDER_LOCK_BUFFER', 0.005)
+                        _ladder_n = int(getattr(self.cfg, 'PROFIT_LADDER_RUNGS', 6))
+                        _ladder = [(_ri * _ladder_step,
+                                    max(0.0, _ri * _ladder_step - max(_ladder_buf, _ladder_step * 0.5)),
+                                    "🪜 LADDER")
+                                   for _ri in range(1, _ladder_n + 1)]
+                    elif getattr(self.cfg, "USE_MULTI_TIER_LADDER", True):
                         # v15.15.1: Group-aware ladder — 0.50% buffer at every rung.
                         # A=calm/large-cap (lock later)  B=standard  C=fast alts  D=volatile
                         _grp = getattr(pos, 'group', 'B')
@@ -1064,15 +1077,30 @@ class Risk:
                                             try: self.tg.send(f"⚠️ NATIVE SL {label} MOVE FAILED {pos.pair} ({_retries} retries)")
                                             except Exception: pass
                                 self.save_state()
-                                # v16.0: partial scale-out — sell 40% when rung 2 fires.
-                                # Locks in guaranteed profit while keeping 60% as runner.
-                                # Paper §4.2: split TPs balance capture vs upside.
+                                # v16.0 / v18.8.7: partial scale-out at rungs.
                                 _total_rungs = len(_ladder)
                                 _fwd_idx = _total_rungs - 1 - _enum_i  # convert reversed→forward
-                                _already = getattr(pos, 'last_scale_rung', -1)
-                                if (getattr(self.cfg, 'PARTIAL_SCALEOUT_ENABLED', True)
+                                if getattr(self.cfg, 'PROFIT_LADDER_ENABLED', False):
+                                    # v18.8.7: bank a slice at EACH new rung. Runs only when the SL just
+                                    # ratcheted up (so each rung fires at most once). Smart-skip when the
+                                    # slice OR the leftover would fall under the exchange min-notional —
+                                    # on a small account this means pure trailing, no sells, until the
+                                    # position is large enough to slice cleanly.
+                                    if getattr(self.cfg, 'PARTIAL_SCALEOUT_ENABLED', True) and pos.qty > 0:
+                                        _slice_pct = getattr(self.cfg, 'PROFIT_LADDER_SCALE_PCT', 0.15)
+                                        _min_usd = getattr(self.cfg, 'PROFIT_LADDER_MIN_SLICE_USD', 5.0)
+                                        _slice_usd = pos.qty * _slice_pct * float(price)
+                                        _remain_usd = pos.qty * (1.0 - _slice_pct) * float(price)
+                                        if _slice_usd >= _min_usd and _remain_usd >= _min_usd:
+                                            self._pending_partials.append(
+                                                (pos, float(price), _slice_pct, f"LADDER_R{_fwd_idx+1}")
+                                            )
+                                            log.info(f"📤 {pos.pair} ladder scale {_slice_pct*100:.0f}% (${_slice_usd:.2f}) at rung {_fwd_idx+1}")
+                                        else:
+                                            log.debug(f"{pos.pair} ladder rung {_fwd_idx+1} sell skipped — slice ${_slice_usd:.2f} < ${_min_usd}; trailing only")
+                                elif (getattr(self.cfg, 'PARTIAL_SCALEOUT_ENABLED', True)
                                         and _fwd_idx == 1  # rung 2 (0-indexed)
-                                        and _already < 1   # not already scaled at rung2
+                                        and getattr(pos, 'last_scale_rung', -1) < 1
                                         and pos.qty > 0):
                                     pos.last_scale_rung = 1
                                     self._pending_partials.append(

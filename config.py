@@ -516,6 +516,18 @@ class Config:
     STRESS_TEST_INTERVAL_H: int = 24
     EXCHANGE_FAILOVER_ENABLED: bool = True
     EXCHANGE_FAILOVER_THRESHOLD: int = 60
+    # v18.8.7 PROFIT LADDER: ATR-stepped trailing + smart partial sells.
+    # As price climbs, the SL ratchets up one ATR-rung at a time (locks gains), and a
+    # slice is banked at each new rung — but only when the slice AND the leftover clear
+    # the exchange min-notional, so on a small account it cleanly degrades to trailing-
+    # only (no fee-bleed, no failed micro-sells). Only ever RAISES the SL, never lowers.
+    # Set PROFIT_LADDER_ENABLED=False to revert to the fixed-% group ladder.
+    PROFIT_LADDER_ENABLED: bool = True
+    PROFIT_LADDER_ATR_MULT: float = 1.0       # rung spacing = this × (ATR / entry)
+    PROFIT_LADDER_RUNGS: int = 6              # how many rungs to project (entry → TP)
+    PROFIT_LADDER_LOCK_BUFFER: float = 0.005  # lock SL ~half a step (min this %) below the achieved rung
+    PROFIT_LADDER_SCALE_PCT: float = 0.15     # sell this fraction of remaining qty per new rung
+    PROFIT_LADDER_MIN_SLICE_USD: float = 5.0  # skip the sell if slice OR remainder < this (Binance min-notional)
 
     @property
     def risk_amount(self): return self.TOTAL_CAPITAL * self.RISK_PCT

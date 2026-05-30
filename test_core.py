@@ -37,6 +37,16 @@ class MockConfig:
     SCALE_OUT = False
     PYRAMID_ENABLED = False
     LOG_FILE = "test_trades.jsonl"
+    # v18.8.7 Profit Ladder
+    PROFIT_LADDER_ENABLED = True
+    PROFIT_LADDER_ATR_MULT = 1.0
+    PROFIT_LADDER_RUNGS = 6
+    PROFIT_LADDER_LOCK_BUFFER = 0.005
+    PROFIT_LADDER_SCALE_PCT = 0.15
+    PROFIT_LADDER_MIN_SLICE_USD = 5.0
+    PARTIAL_SCALEOUT_ENABLED = True
+    PARTIAL_SCALEOUT_PCT = 0.40
+    USE_MULTI_TIER_LADDER = True
 
 
 class MockStateManager:
@@ -675,6 +685,55 @@ class TestDDShieldRealEquityAnchor(unittest.TestCase):
         dd.update(real_equity)
         self.assertGreater(dd.drawdown_pct, 20.0,
             msg="a real ~26% drawdown from a journal-verified peak must be preserved")
+
+
+class TestProfitLadder(unittest.TestCase):
+    """v18.8.7: ATR-stepped Profit Ladder — the SL ratchets up one ATR-rung at a time,
+    and a slice is banked per rung ONLY when it clears the exchange min-notional (else
+    pure trailing). Exercises the live risk.check_exits() path."""
+
+    def setUp(self):
+        self.cfg = MockConfig()
+        self.sm = MockStateManager()
+        with patch('risk.KellySizer', return_value=MagicMock(trade_history=[])), \
+             patch('risk.EventCalendar', return_value=MockMonitor()), \
+             patch('risk.MVRVMonitor'), patch('risk.OpenInterestMonitor'), \
+             patch('risk.TokenUnlockMonitor', return_value=MockMonitor()), \
+             patch('risk.TVLMonitor'), patch('risk.WhaleWalletMonitor'), \
+             patch('risk.StablecoinFlow'):
+            from risk import Risk
+            self.risk = Risk(self.cfg, self.sm)
+        self.risk.tg = None  # skip Telegram sends
+
+    def test_atr_rung_ratchets_sl_and_banks_slice(self):
+        """Entry 100, ATR 2 → 2% step. At +2% (price 102) the SL ratchets to +1% (101),
+        no exit; and on a $51 position the 15% slice ($7.65) clears $5 → a partial is queued."""
+        pos = make_position(pair="TIAUSDT", entry=100.0, qty=0.5, size=50.0,
+                            sl=95.0, tp=110.0, atr=2.0)
+        self.risk.positions.append(pos)
+        ctx = MagicMock(regime="RANGE")
+        exits = asyncio.run(self.risk.check_exits({"TIAUSDT": 102.0}, ctx, MagicMock(), None))
+        self.assertEqual(len(exits), 0, "should trail at the rung, not exit")
+        self.assertAlmostEqual(pos.sl, 101.0, places=2,
+            msg=f"SL should ratchet to entry+1% (101) at the +2% ATR rung, got {pos.sl}")
+        self.assertEqual(len(self.risk._pending_partials), 1,
+            msg="a slice should be banked when it clears the $5 min-notional")
+        self.assertAlmostEqual(self.risk._pending_partials[0][2], 0.15, places=3,
+            msg="queued slice fraction should be PROFIT_LADDER_SCALE_PCT")
+
+    def test_smart_skip_when_slice_below_min_notional(self):
+        """Tiny $20 position: 15% slice = $3.06 < $5 → NO sell queued, but the SL still
+        ratchets up (pure trailing). This is the safe small-account behavior."""
+        pos = make_position(pair="TIAUSDT", entry=100.0, qty=0.20, size=20.0,
+                            sl=95.0, tp=110.0, atr=2.0)
+        self.risk.positions.append(pos)
+        ctx = MagicMock(regime="RANGE")
+        exits = asyncio.run(self.risk.check_exits({"TIAUSDT": 102.0}, ctx, MagicMock(), None))
+        self.assertEqual(len(exits), 0)
+        self.assertAlmostEqual(pos.sl, 101.0, places=2,
+            msg="SL must still trail up even when the slice is too small to sell")
+        self.assertEqual(len(self.risk._pending_partials), 0,
+            msg="no partial should be queued when the slice is under $5 (smart-skip)")
 
 
 if __name__ == "__main__":
