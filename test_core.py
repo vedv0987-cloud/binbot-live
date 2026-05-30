@@ -735,6 +735,24 @@ class TestProfitLadder(unittest.TestCase):
         self.assertEqual(len(self.risk._pending_partials), 0,
             msg="no partial should be queued when the slice is under $5 (smart-skip)")
 
+    def test_lock_never_set_above_current_price(self):
+        """v18.8.8: if price spikes then retraces THROUGH a rung's lock level before the
+        next scan, the lock must clamp to just below current price — never above it. An
+        above-market sell-stop is rejected by Binance ("MOVE FAILED") and forces a worse
+        exit (the exact case that hit TIAUSDT). entry 100, ATR 2 → rung2 lock = +3% (103);
+        price has fallen to 102.5, so the SL must clamp below 102.5, not snap to 103."""
+        pos = make_position(pair="TIAUSDT", entry=100.0, qty=0.5, size=50.0,
+                            sl=95.0, tp=110.0, atr=2.0)
+        pos.high = 105.0  # peak already seen → rung2 (+4% trigger) is armed
+        self.risk.positions.append(pos)
+        ctx = MagicMock(regime="RANGE")
+        exits = asyncio.run(self.risk.check_exits({"TIAUSDT": 102.5}, ctx, MagicMock(), None))
+        self.assertEqual(len(exits), 0, "valid trailing stop below price → no exit this tick")
+        self.assertLess(pos.sl, 102.5,
+            msg=f"SL must stay BELOW current price (clamped), got {pos.sl} vs price 102.5")
+        self.assertGreater(pos.sl, 100.0,
+            msg="SL should still be locked in profit (above entry)")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

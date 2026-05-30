@@ -1044,6 +1044,15 @@ class Risk:
                         if high_price >= trig_price:
                             new_sl = pos.avg_entry * (1 + lock_pct)
                             new_sl = round(new_sl, 8)
+                            # v18.8.8 FIX: never lock the SL at/above the current price. A sell-stop
+                            # above market is rejected by Binance ("would trigger immediately" →
+                            # "NATIVE SL MOVE FAILED") and forces a worse-than-intended market exit.
+                            # Clamp the lock to just below price so it stays a valid, placeable trailing
+                            # stop. Only bites when price has already retraced THROUGH the lock level
+                            # (fast pullback between scans) — the exact case that hit TIAUSDT.
+                            _sl_cap = round(float(price) * (1 - getattr(self.cfg, 'NATIVE_SL_BUFFER_PCT', 0.005)), 8)
+                            if new_sl > _sl_cap:
+                                new_sl = _sl_cap
                             if new_sl > pos.sl:
                                 old_sl = pos.sl
                                 pos.sl = new_sl
