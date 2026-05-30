@@ -523,9 +523,11 @@ class Config:
     # so it degrades to a pure profit-lock on a small account. Chase mode still rides past TP.
     # Set PROFIT_LADDER_ENABLED=False to revert to the fixed-% group ladder.
     PROFIT_LADDER_ENABLED: bool = True
-    # (trigger %, SL-lock %) above entry. Default locks +1.0/+2.0/+3.0 at +1.5/+2.5/+3.5.
-    # For a looser "trail 3% behind price" instead: ((0.015,-0.015),(0.025,-0.005),(0.035,0.005)).
-    PROFIT_LADDER_LEVELS: tuple = ((0.015, 0.010), (0.025, 0.020), (0.035, 0.030))
+    # (trigger %, SL-lock %) above entry. Default: at +1.5% lock BREAKEVEN (entry) so the
+    # runner holds through dips above entry and can't lose, then +1.0/+2.0 at +2.5/+3.5.
+    # Tighter profit-lock: ((0.015,0.010),(0.025,0.020),(0.035,0.030)). Looser 3% trail:
+    # ((0.015,-0.015),(0.025,-0.005),(0.035,0.005)).
+    PROFIT_LADDER_LEVELS: tuple = ((0.015, 0.000), (0.025, 0.010), (0.035, 0.020))
     PROFIT_LADDER_SCALE_PCT: float = 0.30     # sell this fraction of remaining qty at each level
     PROFIT_LADDER_MIN_SLICE_USD: float = 5.0  # skip the sell if slice OR remainder < this (Binance min-notional)
 

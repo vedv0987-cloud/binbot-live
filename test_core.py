@@ -39,7 +39,7 @@ class MockConfig:
     LOG_FILE = "test_trades.jsonl"
     # v18.8.9 Scale Ladder
     PROFIT_LADDER_ENABLED = True
-    PROFIT_LADDER_LEVELS = ((0.015, 0.010), (0.025, 0.020), (0.035, 0.030))
+    PROFIT_LADDER_LEVELS = ((0.015, 0.000), (0.025, 0.010), (0.035, 0.020))
     PROFIT_LADDER_SCALE_PCT = 0.30
     PROFIT_LADDER_MIN_SLICE_USD = 5.0
     PARTIAL_SCALEOUT_ENABLED = True
@@ -704,16 +704,17 @@ class TestProfitLadder(unittest.TestCase):
         self.risk.tg = None  # skip Telegram sends
 
     def test_scale_level_ratchets_sl_and_banks_slice(self):
-        """At the +1.5% level (price 102 ≥ 101.5) the SL locks +1.0% (101), no exit; on a
-        $51 position the 30% slice ($15) clears $5 → a partial is queued (banks real cash)."""
+        """At the +1.5% level (price 102 ≥ 101.5) the SL locks to BREAKEVEN (entry 100) so
+        the runner holds through dips above entry; on a $51 position the 30% slice ($15)
+        clears $5 → a partial is queued (banks real cash)."""
         pos = make_position(pair="TIAUSDT", entry=100.0, qty=0.5, size=50.0,
                             sl=95.0, tp=110.0, atr=2.0)
         self.risk.positions.append(pos)
         ctx = MagicMock(regime="RANGE")
         exits = asyncio.run(self.risk.check_exits({"TIAUSDT": 102.0}, ctx, MagicMock(), None))
         self.assertEqual(len(exits), 0, "should ratchet at the level, not exit")
-        self.assertAlmostEqual(pos.sl, 101.0, places=2,
-            msg=f"SL should lock +1.0% (101) at the +1.5% level, got {pos.sl}")
+        self.assertAlmostEqual(pos.sl, 100.0, places=2,
+            msg=f"SL should lock BREAKEVEN (entry 100) at the +1.5% level, got {pos.sl}")
         self.assertEqual(len(self.risk._pending_partials), 1,
             msg="a slice should be banked when it clears the $5 min-notional")
         self.assertAlmostEqual(self.risk._pending_partials[0][2], 0.30, places=3,
@@ -721,15 +722,15 @@ class TestProfitLadder(unittest.TestCase):
 
     def test_smart_skip_when_slice_below_min_notional(self):
         """Tiny $15 position: 30% slice = $4.59 < $5 → NO sell queued, but the SL still
-        ratchets to the profit-lock (pure lock, no sell). Safe small-account behavior."""
+        ratchets to breakeven (pure lock, no sell). Safe small-account behavior."""
         pos = make_position(pair="TIAUSDT", entry=100.0, qty=0.15, size=15.0,
                             sl=95.0, tp=110.0, atr=2.0)
         self.risk.positions.append(pos)
         ctx = MagicMock(regime="RANGE")
         exits = asyncio.run(self.risk.check_exits({"TIAUSDT": 102.0}, ctx, MagicMock(), None))
         self.assertEqual(len(exits), 0)
-        self.assertAlmostEqual(pos.sl, 101.0, places=2,
-            msg="SL must still trail up even when the slice is too small to sell")
+        self.assertAlmostEqual(pos.sl, 100.0, places=2,
+            msg="SL must still ratchet to breakeven even when the slice is too small to sell")
         self.assertEqual(len(self.risk._pending_partials), 0,
             msg="no partial should be queued when the slice is under $5 (smart-skip)")
 
@@ -737,8 +738,8 @@ class TestProfitLadder(unittest.TestCase):
         """v18.8.8: if price spikes then retraces THROUGH a rung's lock level before the
         next scan, the lock must clamp to just below current price — never above it. An
         above-market sell-stop is rejected by Binance ("MOVE FAILED") and forces a worse
-        exit (the exact case that hit TIAUSDT). The +3.5% level locks +3.0% (103), but
-        price has fallen to 102.5, so the SL must clamp below 102.5, not snap to 103."""
+        exit (the exact case that hit TIAUSDT). The +3.5% level locks +2.0% (102), but
+        price has fallen to 102.5, so the SL must clamp below 102.5, not snap to 102."""
         pos = make_position(pair="TIAUSDT", entry=100.0, qty=0.5, size=50.0,
                             sl=95.0, tp=110.0, atr=2.0)
         pos.high = 105.0  # peak already seen → +3.5% level is armed
