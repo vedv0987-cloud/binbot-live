@@ -48,11 +48,12 @@ class MockConfig:
     # v18.9.0 Session filter — OFF in tests so the other can_trade tests are unaffected;
     # the logic is exercised directly via _session_ok in TestSessionFilter.
     SESSION_FILTER_ENABLED = False
+    SESSION_DST_AUTOSHIFT = True
     SESSION_GOLDEN = (1110, 1350)
     SESSION_WINDOWS = (
-        ("ASIAN", 330, 810, frozenset({"XRP", "ADA"})),
-        ("GOLDEN", 1110, 1350, frozenset({"BTC", "ETH"})),
-        ("MEME", 1350, 210, frozenset({"DOGE", "ENJ"})),
+        ("ASIAN", 330, 810, frozenset({"XRP", "ADA"}), False),
+        ("GOLDEN", 1110, 1350, frozenset({"BTC", "ETH"}), True),
+        ("MEME", 1350, 210, frozenset({"DOGE", "ENJ"}), True),
     )
 
 
@@ -809,6 +810,14 @@ class TestSessionFilter(unittest.TestCase):
         ok, reason, _ = self.risk.can_trade(make_signal(pair="XRPUSDT"))
         self.assertFalse(ok)
         self.assertIn("OffSession", reason)
+
+    def test_dst_shift_moves_us_anchored_windows(self):
+        """v18.9.1: US-anchored windows (incl. golden) shift +60 min in US winter. At 19:00
+        IST (now_min=1140): in summer the golden window (1110-1350) is open to all → an
+        unlisted coin trades; in US winter golden shifts to (1170-1410) so 1140 falls BELOW
+        it → the same unlisted coin is blocked. Proves the seasonal shift."""
+        self.assertTrue(self.risk._session_ok("IOTXUSDT", now_min=1140, dst_shift=0)[0])
+        self.assertFalse(self.risk._session_ok("IOTXUSDT", now_min=1140, dst_shift=60)[0])
 
 
 if __name__ == "__main__":

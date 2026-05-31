@@ -530,18 +530,22 @@ class Config:
     PROFIT_LADDER_LEVELS: tuple = ((0.015, 0.000), (0.025, 0.010), (0.035, 0.020))
     PROFIT_LADDER_SCALE_PCT: float = 0.30     # sell this fraction of remaining qty at each level
     PROFIT_LADDER_MIN_SLICE_USD: float = 5.0  # skip the sell if slice OR remainder < this (Binance min-notional)
-    # v18.9.0 SESSION FILTER: only ENTER a coin during its active IST liquidity window.
-    # The Golden window (peak global volume) is open to ALL coins; coins not listed in any
-    # window may trade ONLY in the Golden window. Times are minutes-since-IST-midnight
-    # (IST = UTC+5:30); a window whose end < start crosses midnight. Exits are NEVER gated.
+    # v18.9.1 SESSION FILTER: only ENTER a coin during its active IST liquidity window.
+    # Golden window (peak global volume, validated 13:00-17:00 UTC) is open to ALL coins;
+    # coins not in any window may enter ONLY in the golden window. Times are minutes-since-
+    # IST-midnight (IST=UTC+5:30); a window whose end < start crosses midnight. 5th field
+    # dst=True marks US-anchored windows that auto-shift +60 min during US winter (EST) so
+    # they track real US flows year-round (SESSION_DST_AUTOSHIFT). Exits are NEVER gated.
     SESSION_FILTER_ENABLED: bool = True
-    SESSION_GOLDEN: tuple = (1110, 1350)  # 18:30–22:30 IST — open to every coin
+    SESSION_DST_AUTOSHIFT: bool = True      # shift US-anchored windows +1h during US winter (EST)
+    SESSION_GOLDEN: tuple = (1110, 1350)    # 18:30-22:30 IST - open to every coin (US-anchored)
+    # (name, start_IST_min, end_IST_min, frozenset(bases), dst_anchored)
     SESSION_WINDOWS: tuple = (
-        ("ASIAN",   330,  810,  frozenset({"NEO","QTUM","XRP","ADA","TON","TRX","XLM","ALGO","HBAR","VET","EOS","ONE","ZIL"})),
-        ("EUROPE",  810,  1110, frozenset({"DOT","ATOM","APT","SUI","TIA","SEI","POL","MATIC","ARB","OP","MNT","STRK","IMX","BCH","LTC","ETC","ZEC","XMR","DASH","EGLD","XTZ","FLOW","KAVA"})),
-        ("GOLDEN",  1110, 1350, frozenset({"BTC","ETH","SOL","BNB","AVAX"})),
-        ("US_TECH", 1140, 60,   frozenset({"RENDER","TAO","NEAR","LINK","INJ","IO","FIL","AR","GRT","LPT","THETA","ENS","VANA","HEI","CYBER","MASK","QNT","UNI","CAKE","SUSHI","RAY","ORCA","1INCH","CRV","BAL","BNT","PYTH","ZRO","W","AAVE","MKR","COMP","PENDLE","ONDO","YGG","EUL","CVX","STG","LDO","JTO","RPL","SNX","RUNE","DYDX"})),
-        ("MEME",    1350, 210,  frozenset({"DOGE","SHIB","PEPE","WIF","FLOKI","BONK","1000CAT","1MBABYDOGE","TRUMP","BOME","MEME","ORDI","1000SATS","SAND","MANA","APE","ALICE","AXS","GALA","ENJ","ILV","PORTAL","BEAM","PIXEL","DAR","CHR","MAGIC","BLUR","SUPER","TWT","GT","CRO"})),
+        ("ASIAN",   330,  810,  frozenset({"NEO","QTUM","XRP","ADA","TON","TRX","XLM","ALGO","HBAR","VET","EOS","ONE","ZIL","JASMY","CHZ"}), False),
+        ("EUROPE",  810,  1110, frozenset({"DOT","ATOM","APT","SUI","TIA","SEI","POL","ARB","OP","MNT","STRK","IMX","BCH","LTC","ETC","ZEC","XMR","DASH","EGLD","XTZ","FLOW","KAVA","ICP","FTM","MINA","IOTA","METIS","MANTA","ZK","STX","GAS","BTC","ETH","SOL","BNB","AVAX"}), False),
+        ("GOLDEN",  1110, 1350, frozenset({"BTC","ETH","SOL","BNB","AVAX"}), True),
+        ("US_TECH", 1140, 60,   frozenset({"RENDER","TAO","NEAR","LINK","INJ","IO","FIL","AR","GRT","LPT","THETA","ENS","VANA","HEI","CYBER","MASK","QNT","UNI","CAKE","SUSHI","RAY","ORCA","1INCH","CRV","BAL","BNT","PYTH","ZRO","W","AAVE","MKR","COMP","PENDLE","ONDO","YGG","EUL","CVX","STG","LDO","JTO","RPL","SNX","RUNE","DYDX","FET","WLD","ARKM","ENA","JUP","IOTX","ANKR","STORJ","AUDIO","TRB","WOO","SKL","YFI","TNSR","CELO","BTC","ETH","SOL","BNB","AVAX"}), True),
+        ("MEME",    1350, 210,  frozenset({"DOGE","SHIB","PEPE","WIF","FLOKI","BONK","1000CAT","1MBABYDOGE","TRUMP","BOME","MEME","ORDI","1000SATS","SAND","MANA","APE","ALICE","AXS","GALA","ENJ","ILV","PORTAL","BEAM","BEAMX","PIXEL","DAR","CHR","MAGIC","BLUR","SUPER","TWT","GT","CRO","NOT","HOT","GMT","RVN","BAT"}), True),
     )
 
     @property

@@ -233,27 +233,49 @@ class Risk:
             if self.last_reset: log.info(f"📊 Reset | PnL:${self.daily_pnl:+.4f} T:{self.daily_t}")
             self.daily_pnl=0; self.daily_t=0; self.closs=0; self.pause_until=None; self.pair_losses_today={}; self.last_reset=d
 
-    def _session_ok(self, pair, now_min=None):
-        """v18.9.0: True if `pair`'s base asset may ENTER at the current IST time.
-        Golden window (SESSION_GOLDEN) is open to ALL coins; a listed coin also trades
-        in its own window; an unlisted coin trades ONLY in the golden window. Windows may
-        cross midnight (end < start). Fails OPEN on any clock/config error — a time bug
-        must never block trading. `now_min` (minutes since IST midnight) lets tests inject."""
+    def _us_winter_shift(self):
+        """v18.9.1: +60 (minutes) during US winter (EST), else 0. US-anchored session
+        windows shift by this so they track real US flows across daylight-saving changes.
+        Fails OPEN (0 = no shift) if zoneinfo/tzdata is unavailable or autoshift is off."""
+        if not getattr(self.cfg, 'SESSION_DST_AUTOSHIFT', False):
+            return 0
+        try:
+            from zoneinfo import ZoneInfo
+            from datetime import datetime, timezone
+            off = datetime.now(timezone.utc).astimezone(ZoneInfo("America/New_York")).utcoffset()
+            return 60 if (off is not None and off.total_seconds() <= -5 * 3600) else 0
+        except Exception:
+            return 0
+
+    def _session_ok(self, pair, now_min=None, dst_shift=None):
+        """v18.9.1: True if `pair`'s base asset may ENTER at the current IST time.
+        Golden window (SESSION_GOLDEN) is open to ALL coins; a listed coin also trades in
+        its own window; an unlisted coin trades ONLY in the golden window. Windows may cross
+        midnight (end < start). US-anchored windows (dst flag) and the golden window shift by
+        dst_shift minutes during US winter. Fails OPEN on any error — a time bug must never
+        block trading. `now_min`/`dst_shift` let tests inject deterministically."""
         try:
             if now_min is None:
                 from datetime import datetime, timezone, timedelta
                 _ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
                 now_min = _ist.hour * 60 + _ist.minute
+            if dst_shift is None:
+                dst_shift = self._us_winter_shift()
+            def _hit(m, s, e):
+                return (s <= m < e) if s <= e else (m >= s or m < e)
             base = pair.replace("USDT", "").replace("BUSD", "")
             g = getattr(self.cfg, 'SESSION_GOLDEN', (1110, 1350))
-            if g[0] <= now_min < g[1]:
+            if _hit(now_min, (g[0] + dst_shift) % 1440, (g[1] + dst_shift) % 1440):
                 return True, "GOLDEN"
             listed = False
-            for _name, _start, _end, _coins in getattr(self.cfg, 'SESSION_WINDOWS', ()):
+            for _w in getattr(self.cfg, 'SESSION_WINDOWS', ()):
+                _name, _start, _end, _coins = _w[0], _w[1], _w[2], _w[3]
+                _dst = _w[4] if len(_w) > 4 else False
                 if base in _coins:
                     listed = True
-                    _hit = (_start <= now_min < _end) if _start <= _end else (now_min >= _start or now_min < _end)
-                    if _hit:
+                    _s = (_start + dst_shift) % 1440 if _dst else _start
+                    _e = (_end + dst_shift) % 1440 if _dst else _end
+                    if _hit(now_min, _s, _e):
                         return True, _name
             return (False, "unlisted") if not listed else (False, "off-window")
         except Exception:
