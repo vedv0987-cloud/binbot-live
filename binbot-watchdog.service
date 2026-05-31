@@ -1,0 +1,11 @@
+[Unit]
+Description=BinBot external watchdog (heartbeat restart + equity-floor kill switch)
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/binbot_live
+EnvironmentFile=/home/ubuntu/binbot_live/.env
+ExecStart=/usr/bin/python3 /home/ubuntu/binbot_live/watchdog.py
+# Runs as root (system unit) so it can `systemctl restart/stop binance-bot-v11`
+# without sudo. The watchdog NEVER opens trades; worst case it restarts/stops the bot.

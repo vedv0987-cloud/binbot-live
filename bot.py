@@ -731,7 +731,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.1 GodMode — audit-hardened core + scale-ladder + session-filter (full coin map + DST) (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.2 GodMode — audit-hardened core + scale-ladder + session-filter + external watchdog (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -1148,6 +1148,13 @@ class ProBotV11:
 
     async def _cycle(self):
         self.cycles+=1
+        # v18.9.2: external-watchdog heartbeat — stamp a UNIX ts every cycle so a SEPARATE
+        # watchdog process can detect a hung/looping bot (systemd Restart=always only catches
+        # crashes, not hangs). Best-effort; never breaks the loop.
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "heartbeat.txt"), "w") as _hb:
+                _hb.write(str(int(time.time())))
+        except Exception: pass
         if self.cycles % 50 == 0: asyncio.get_event_loop().run_in_executor(None, gc.collect)  # v16.0 AUDIT FIX M4: was gc.collect() blocking hot path — now background thread
 
         # v16.0.0 NEW: gate-rejection telemetry histogram (helps tune MIN_CONF/heat/cooldown).

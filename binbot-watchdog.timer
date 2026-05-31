@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the BinBot watchdog every 60s
+
+[Timer]
+OnBootSec=120
+OnUnitActiveSec=60
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target
