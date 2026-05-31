@@ -48,10 +48,20 @@ try:
     XGB_AVAILABLE = True
 except ImportError:
     XGB_AVAILABLE = False
-try:
-    from catboost import CatBoostClassifier
-    CATBOOST_AVAILABLE = True
-except ImportError:
+# v18.9.3: CatBoost OFF by default — it costs ~300MB RAM on the 1GB VM (pymalloc
+# fragmentation + an inference-time burst can breach the 750MB cap → OOM-kill). The
+# 4-model ensemble (RF+GB+LGBM+XGB) loses only a negligible fraction of accuracy. The
+# import is GATED (not just unused) so the C library is never loaded into RAM. Re-enable
+# with BINBOT_USE_CATBOOST=1 (also `pip install catboost` + delete a 4-model ml_models.pkl
+# so it retrains with cat included).
+import os as _oscb
+if _oscb.environ.get("BINBOT_USE_CATBOOST", "0") == "1":
+    try:
+        from catboost import CatBoostClassifier
+        CATBOOST_AVAILABLE = True
+    except ImportError:
+        CATBOOST_AVAILABLE = False
+else:
     CATBOOST_AVAILABLE = False
 log = logging.getLogger('binbot')
 
@@ -920,7 +930,7 @@ class ModelSelector:
     def is_active(self, model): return self.active.get(model,True)
     def status(self):
         active=sum(1 for a in self.active.values() if a)
-        return f"Models:{active}/5"  # v13.0: rf+gb+lgbm+xgb+cat
+        return f"Models:{active}/{5 if CATBOOST_AVAILABLE else 4}"  # rf+gb+lgbm+xgb (+cat if BINBOT_USE_CATBOOST)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # v8.3 MODULE 12: Web Dashboard Data Exporter
@@ -1194,7 +1204,7 @@ class MLPredictor:
                 self._ready = True; self.last_train = time.time()
                 n_models = sum(1 for m in [self.model, self._gb, self._lgbm, self._xgb, self._cat] if m is not None)
                 _outlier_status = "fitted" if (getattr(self._outlier, "_mean", None) is not None) else "fresh"
-                log.info(f"🧠 ML loaded from disk | Acc:{self.accuracy:.1%} | Models:{n_models}/5 | PCA:{'yes' if self._pca else 'no'} | Scaler:{'yes' if self._scaler else 'no'} | Outlier:{_outlier_status}")
+                log.info(f"🧠 ML loaded from disk | Acc:{self.accuracy:.1%} | Models:{n_models}/{5 if CATBOOST_AVAILABLE else 4} | PCA:{'yes' if self._pca else 'no'} | Scaler:{'yes' if self._scaler else 'no'} | Outlier:{_outlier_status}")
         except Exception as _e: log.debug(f"Suppressed [ml]: {_e}")
 
     def should_retrain(self): return time.time()-self.last_train>self.retrain_hours*3600

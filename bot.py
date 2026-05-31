@@ -731,7 +731,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.2 GodMode — audit-hardened core + scale-ladder + session-filter + external watchdog (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.3 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog + lean-ML (4-model) (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:

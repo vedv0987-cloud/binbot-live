@@ -11,7 +11,7 @@ numpy==1.26.4
 scikit-learn>=1.3.0
 lightgbm>=4.3.0
 xgboost>=2.0.0     # v18.8: 4th ensemble model (was missing → ML ran 3/5)
-catboost>=1.2.0    # v18.8: 5th ensemble model (was missing → ML ran 3/5)
+# catboost>=1.2.0  # v18.9.3: DISABLED — ~300MB RAM on the 1GB VM for negligible accuracy gain. Re-enable here + set BINBOT_USE_CATBOOST=1.
 # NOTE: xgboost+catboost add ~250MB RAM. v18.8 frees that by NOT loading torch at startup
 # (LSTM is off). If the VM still OOMs, raise MemoryMax in the systemd unit or drop catboost.
 
