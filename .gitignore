@@ -25,6 +25,7 @@ coin_profiles.json
 kelly_history.json
 selfhealer_state.json
 heartbeat.txt
+watchdog_state.txt
 
 # Trade journals / telemetry (append-only logs)
 *.jsonl

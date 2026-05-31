@@ -640,6 +640,13 @@ class ProBotV11:
         signal.signal(signal.SIGTERM,self._stop)
         self.start=datetime.now(timezone.utc)
         self._last_heartbeat = time.time()  # v8.4 FIX #3: Heartbeat tracking
+        # v18.9.4 FIX: stamp the watchdog heartbeat at the VERY START of run() — BEFORE the
+        # slow backtest/ML-retrain — so a (re)started bot refreshes it within seconds and the
+        # watchdog can't kill it mid-startup before the first cycle (that caused a restart loop).
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "heartbeat.txt"), "w") as _hb0:
+                _hb0.write(str(int(time.time())))
+        except Exception: pass
         bal_data = await self.ex.get_asset_balance("USDT")
         bal = float(bal_data["free"]) + float(bal_data.get("locked", 0))
         # v8.4: Auto-detect capital from actual balance (compound start)
@@ -731,7 +738,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.3 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog + lean-ML (4-model) (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.4 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:

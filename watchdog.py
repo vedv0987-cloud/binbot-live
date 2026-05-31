@@ -26,9 +26,11 @@ from pathlib import Path
 BOT_DIR   = Path(os.path.dirname(os.path.abspath(__file__)))
 SERVICE   = os.environ.get("WATCHDOG_SERVICE", "binance-bot-v11")
 HEARTBEAT = BOT_DIR / "heartbeat.txt"
-STALE_SEC = int(os.environ.get("WATCHDOG_STALE_SEC", "300") or 300)
+STALE_SEC = int(os.environ.get("WATCHDOG_STALE_SEC", "600") or 600)   # v18.9.4: 600s (was 300)
+GRACE_SEC = int(os.environ.get("WATCHDOG_GRACE_SEC", "300") or 300)   # after a restart, wait this long before another
 FLOOR_USD = float(os.environ.get("WATCHDOG_FLOOR_USD", "0") or 0)   # 0 = floor check OFF
 STABLES   = ("USDT", "USDC", "FDUSD", "BUSD", "TUSD")
+RESTART_STATE = BOT_DIR / "watchdog_state.txt"   # last-restart ts, for the grace window
 
 
 def _load_env():
@@ -103,12 +105,22 @@ def _flatten():
 def main():
     _load_env()
 
-    # 1) Heartbeat staleness -> restart (recovers a hung/looping process).
+    # 1) Heartbeat staleness -> restart (recovers a hung/looping process). v18.9.4: after a
+    # restart, hold off for GRACE_SEC so the bot can finish its (slow) startup + write the
+    # first heartbeat — otherwise restarting mid-boot loops forever (the v18.9.2 bug).
     try:
         if HEARTBEAT.exists():
             stale = time.time() - float(HEARTBEAT.read_text().strip() or 0)
-            if stale > STALE_SEC:
+            since_restart = 1e9
+            try:
+                if RESTART_STATE.exists():
+                    since_restart = time.time() - float(RESTART_STATE.read_text().strip() or 0)
+            except Exception:
+                pass
+            if stale > STALE_SEC and since_restart > GRACE_SEC:
                 _tg(f"🐶 <b>WATCHDOG</b>: heartbeat stale {stale:.0f}s (&gt; {STALE_SEC}s) — restarting <code>{SERVICE}</code>")
+                try: RESTART_STATE.write_text(str(int(time.time())))
+                except Exception: pass
                 _systemctl("restart")
                 return
     except Exception as e:
