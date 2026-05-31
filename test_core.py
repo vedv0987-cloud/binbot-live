@@ -45,6 +45,15 @@ class MockConfig:
     PARTIAL_SCALEOUT_ENABLED = True
     PARTIAL_SCALEOUT_PCT = 0.40
     USE_MULTI_TIER_LADDER = True
+    # v18.9.0 Session filter — OFF in tests so the other can_trade tests are unaffected;
+    # the logic is exercised directly via _session_ok in TestSessionFilter.
+    SESSION_FILTER_ENABLED = False
+    SESSION_GOLDEN = (1110, 1350)
+    SESSION_WINDOWS = (
+        ("ASIAN", 330, 810, frozenset({"XRP", "ADA"})),
+        ("GOLDEN", 1110, 1350, frozenset({"BTC", "ETH"})),
+        ("MEME", 1350, 210, frozenset({"DOGE", "ENJ"})),
+    )
 
 
 class MockStateManager:
@@ -751,6 +760,55 @@ class TestProfitLadder(unittest.TestCase):
             msg=f"SL must stay BELOW current price (clamped), got {pos.sl} vs price 102.5")
         self.assertGreater(pos.sl, 100.0,
             msg="SL should still be locked in profit (above entry)")
+
+
+class TestSessionFilter(unittest.TestCase):
+    """v18.9.0: per-coin IST liquidity-window ENTRY filter. Golden (1110-1350) is open to
+    all; a listed coin also trades its own window; an unlisted coin trades only in Golden;
+    windows can cross midnight; ONLY can_trade is gated (exits always run). The decision
+    logic is tested directly via _session_ok with injected IST minutes (deterministic)."""
+
+    def setUp(self):
+        self.cfg = MockConfig()
+        self.sm = MockStateManager()
+        with patch('risk.KellySizer', return_value=MagicMock(trade_history=[])), \
+             patch('risk.EventCalendar', return_value=MockMonitor()), \
+             patch('risk.MVRVMonitor'), patch('risk.OpenInterestMonitor'), \
+             patch('risk.TokenUnlockMonitor', return_value=MockMonitor()), \
+             patch('risk.TVLMonitor'), patch('risk.WhaleWalletMonitor'), \
+             patch('risk.StablecoinFlow'):
+            from risk import Risk
+            self.risk = Risk(self.cfg, self.sm)
+
+    def test_listed_coin_inside_its_window_allowed(self):
+        ok, win = self.risk._session_ok("XRPUSDT", now_min=600)  # 10:00 IST → Asian
+        self.assertTrue(ok)
+        self.assertEqual(win, "ASIAN")
+
+    def test_listed_coin_outside_window_blocked(self):
+        ok, why = self.risk._session_ok("XRPUSDT", now_min=1000)  # 16:40 IST → not Asian/Golden
+        self.assertFalse(ok)
+        self.assertEqual(why, "off-window")
+
+    def test_golden_window_opens_everything(self):
+        self.assertTrue(self.risk._session_ok("XRPUSDT", now_min=1200)[0])   # 20:00 IST, golden
+        self.assertTrue(self.risk._session_ok("IOTXUSDT", now_min=1200)[0])  # unlisted, but golden
+
+    def test_unlisted_blocked_outside_golden(self):
+        ok, why = self.risk._session_ok("IOTXUSDT", now_min=600)
+        self.assertFalse(ok)
+        self.assertEqual(why, "unlisted")
+
+    def test_window_crossing_midnight(self):
+        self.assertTrue(self.risk._session_ok("DOGEUSDT", now_min=60)[0])    # 01:00 IST, in MEME (1350→210)
+        self.assertFalse(self.risk._session_ok("DOGEUSDT", now_min=720)[0])  # 12:00 IST, not MEME/Golden
+
+    def test_can_trade_blocks_when_off_session(self):
+        self.risk.cfg.SESSION_FILTER_ENABLED = True
+        self.risk._session_ok = lambda pair, now_min=None: (False, "off-window")
+        ok, reason, _ = self.risk.can_trade(make_signal(pair="XRPUSDT"))
+        self.assertFalse(ok)
+        self.assertIn("OffSession", reason)
 
 
 if __name__ == "__main__":

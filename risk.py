@@ -233,6 +233,32 @@ class Risk:
             if self.last_reset: log.info(f"📊 Reset | PnL:${self.daily_pnl:+.4f} T:{self.daily_t}")
             self.daily_pnl=0; self.daily_t=0; self.closs=0; self.pause_until=None; self.pair_losses_today={}; self.last_reset=d
 
+    def _session_ok(self, pair, now_min=None):
+        """v18.9.0: True if `pair`'s base asset may ENTER at the current IST time.
+        Golden window (SESSION_GOLDEN) is open to ALL coins; a listed coin also trades
+        in its own window; an unlisted coin trades ONLY in the golden window. Windows may
+        cross midnight (end < start). Fails OPEN on any clock/config error — a time bug
+        must never block trading. `now_min` (minutes since IST midnight) lets tests inject."""
+        try:
+            if now_min is None:
+                from datetime import datetime, timezone, timedelta
+                _ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+                now_min = _ist.hour * 60 + _ist.minute
+            base = pair.replace("USDT", "").replace("BUSD", "")
+            g = getattr(self.cfg, 'SESSION_GOLDEN', (1110, 1350))
+            if g[0] <= now_min < g[1]:
+                return True, "GOLDEN"
+            listed = False
+            for _name, _start, _end, _coins in getattr(self.cfg, 'SESSION_WINDOWS', ()):
+                if base in _coins:
+                    listed = True
+                    _hit = (_start <= now_min < _end) if _start <= _end else (now_min >= _start or now_min < _end)
+                    if _hit:
+                        return True, _name
+            return (False, "unlisted") if not listed else (False, "off-window")
+        except Exception:
+            return True, "err-allow"
+
     def can_trade(self, sig, fg=50):
         # v9.2: FOMC/CPI event protection
         # v13.4 fix (Batch 1): docs aligned to actual code behavior.
@@ -254,6 +280,13 @@ class Risk:
         if p: return False,r,0
         if len(self.positions)>=self.cfg.MAX_POSITIONS: return False,"MaxPos",0
         if any(p.pair==sig.pair for p in self.positions): return False,"Held",0
+        # v18.9.0 SESSION FILTER: only enter a coin during its active IST liquidity window
+        # (golden window open to all; unlisted coins → golden only). Entries only — exits
+        # are handled in check_exits and are never gated.
+        if getattr(self.cfg, 'SESSION_FILTER_ENABLED', False):
+            _sok, _swin = self._session_ok(sig.pair)
+            if not _sok:
+                return False, f"OffSession:{_swin}", 0
         # v9.3: Token unlock protection (applies to all signals, not just those with cooldowns)
         coin_name = sig.pair.replace("USDT","")
         avoid, unlock_reason = self.token_unlocks.should_avoid(coin_name)
