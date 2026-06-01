@@ -31,6 +31,11 @@ class Config:
     USE_TESTNET: bool = False
     TOTAL_CAPITAL: float = 45.65  # v13.5.5 fresh start May 12 2026
     RISK_PCT: float = 0.02  # v14.6.5 AUDIT FIX: Option C — 2% risk (keeps existing per-trade risk level)
+    # v18.9.6: per-trade SL ceiling + risk-normalized sizing. With RISK_NORMALIZE_SIZE on,
+    # a wider/slipped stop SHRINKS the position so dollar risk never exceeds RISK_PCT of
+    # capital (was: size fixed at ~33% regardless of SL width → real risk floated to ~3.3%).
+    MAX_SL_PCT: float = 0.10
+    RISK_NORMALIZE_SIZE: bool = True
     MAX_POSITIONS: int = 2  # v14.6.5 AUDIT FIX: Option C — 2 positions (spreads risk vs old SNIPER_90 single trade)
     MAX_EXPOSURE: float = 0.75   # v14.6.5 AUDIT FIX: Option C — 75% max exposure (down from 90% for safety)
     POSITION_SIZE_PCT: float = 0.3333  # v18.7.4: base fraction of capital per trade (was hardcoded
@@ -207,6 +212,10 @@ class Config:
     # QFL
     QFL_DROP: float = 3.0
     QFL_VOL: float = 2.0
+    # v18.9.6: don't catch falling knives in a confirmed BEAR daily downtrend. QFL_PANIC
+    # buys a 3-5% high-volume drop with NO trend/HTF confirmation; in a BEAR daily it just
+    # rides the dump to its stop. Still allowed in NEUTRAL/BULL (oversold-bounce reversal).
+    BLOCK_QFL_IN_BEAR: bool = True
 
     # Trailing Buy
     TRAILING_BUY: bool = False  # v9.7 FIX: was silently expiring most signals on flat days

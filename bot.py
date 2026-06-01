@@ -483,6 +483,14 @@ class ProBotV11:
                                             ("WYCKOFF_ACC", "SMC_OB", "SMC_OB+FVG"))):
             return block("regime", f"{sig.strategy} accumulation in BEAR daily — skip")
 
+        # v18.9.6: QFL_PANIC catches falling knives — it buys a 3-5% high-vol drop with NO
+        # trend/HTF confirmation and is exempt from the MTF + accumulation gates, so a BEAR
+        # daily is its only missing trend filter. Block it there (still allowed NEUTRAL/BULL).
+        if (getattr(ctx, 'daily', '') == "BEAR"
+                and sig.strategy == "QFL_PANIC"
+                and getattr(self.cfg, 'BLOCK_QFL_IN_BEAR', True)):
+            return block("regime", "QFL_PANIC falling-knife in BEAR daily — skip")
+
         # v16.0.05: BEAR regime max 1 position — all alts fall together on BTC dump.
         # 2 correlated longs in BEAR = double SL hit risk on any market downturn.
         if (getattr(ctx, 'daily', '') == 'BEAR'
@@ -745,7 +753,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.5 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + Binance delist/halt gate (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.6 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -2022,9 +2030,15 @@ class ProBotV11:
                         if _ppos not in self.risk.positions:
                             continue
                     _asset_p = _ppos.pair.replace("USDT","").replace("BUSD","")
+                    # v18.9.6 FIX: detach the native SL/TP BEFORE the partial sell so (a) the full
+                    # qty is free to sell the correct slice and (b) the parked stop isn't left sized
+                    # for the OLD qty. Detach fail → skip (position stays fully protected, retry next cycle).
+                    if not await self._detach_native_sl_before_sell(_ppos, reason="SCALE_OUT"):
+                        continue
                     _free_b = float((await self.ex.get_asset_balance(_asset_p)).get("free", 0))
                     _sell_qty = self.ex.rnd(_ppos.pair, min(_ppos.qty * _ppct, _free_b * 0.99))
                     if _sell_qty <= 0:
+                        await self._restore_native_sl_after_failed_sell(_ppos, reason="SCALE_OUT")
                         continue
                     _r = await self.ex.sell(_ppos.pair, _sell_qty)
                     if "error" not in _r:
@@ -2036,6 +2050,20 @@ class ProBotV11:
                             _ppos.qty = self.ex.rnd(_ppos.pair, _ppos.qty - _sell_qty)
                             _ppos.total_qty = _ppos.qty  # v16.0 AUDIT FIX H4: was not updated — broke DCA/fee pro-rating
                             _ppos.size = round(_ppos.avg_entry * _ppos.qty, 6)
+                        # v18.9.6 FIX: re-attach native SL at the NEW (reduced) qty so the runner
+                        # always keeps a correctly-sized exchange stop (was: never resized → next
+                        # ratchet failed -2010 and the runner went naked on the exchange).
+                        if (getattr(self.cfg, "NATIVE_SL_ENABLED", False) and getattr(self, "native_sl", None)
+                                and _ppos.qty > 0):
+                            try:
+                                if await asyncio.to_thread(self.native_sl.attach, _ppos):
+                                    log.info(f"🔁 Native SL resized {_ppos.pair} → qty={_ppos.qty} @ ${_ppos.sl:.6f}")
+                                else:
+                                    log.warning(f"⚠️ Native SL re-attach FAILED after partial {_ppos.pair} — software SL covering")
+                                    try: self.tg.send(f"⚠️ <b>NATIVE SL RE-ATTACH FAILED</b> {_ppos.pair}\nAfter scale-out; software SL is the failsafe — check manually.")
+                                    except Exception: pass
+                            except Exception as _rae:
+                                log.warning(f"Native SL re-attach exception {_ppos.pair}: {_rae}")
                         log.info(
                             f"📤 SCALE_OUT {_ppos.pair} sold {_sell_qty} @ ${_exit_p:.4f} "
                             f"pnl=${_partial_pnl:+.4f} remain qty={_ppos.qty}"
@@ -2051,8 +2079,13 @@ class ProBotV11:
                         self.risk.save_state()
                     else:
                         log.warning(f"Partial scale-out {_ppos.pair} failed: {_r}")
+                        # v18.9.6: sell failed AFTER we detached the stop → restore it now
+                        # (unchanged qty) so the position is never left unprotected.
+                        await self._restore_native_sl_after_failed_sell(_ppos, reason="SCALE_OUT")
                 except Exception as _pe:
                     log.warning(f"Partial scale-out {_ppos.pair}: {_pe}")
+                    try: await self._restore_native_sl_after_failed_sell(_ppos, reason="SCALE_OUT")
+                    except Exception: pass
 
             actually_closed = []
             for pos, close_price, reason in closed:

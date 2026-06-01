@@ -422,7 +422,7 @@ class Risk:
         # v13.5.2 audit Fix #6: floor raised 0.5%→3% to match strategies.py:304.
         # v14.6.2: Group D uses wider 4% SL floor.
         _sl_floor = self.cfg.GROUP_D_SL_FLOOR if getattr(sig, "group", "A") == "D" else 0.03
-        capped_sl_pct = max(min(sl_pct, 0.10), _sl_floor)
+        capped_sl_pct = max(min(sl_pct, getattr(self.cfg, 'MAX_SL_PCT', 0.10)), _sl_floor)
         if capped_sl_pct != sl_pct:
             old_sl = sig.sl
             sig.sl = sig.price * (1 - capped_sl_pct)
@@ -491,6 +491,15 @@ class Risk:
             else:
                 _base_frac = getattr(self.cfg, 'POSITION_SIZE_PCT', 0.3333)  # v18.7.4: tier-driven (was hardcoded 0.3333)
                 size=min(self.cfg.TOTAL_CAPITAL*_base_frac*_vol_scalar, self.cfg.TOTAL_CAPITAL*_pos_cap, self.available*0.90)  # v14.6.2: vol-targeted
+        # v18.9.6: RISK-NORMALIZE — cap size so dollar risk (size × sl_pct) never exceeds
+        # RISK_PCT of capital. Only shrinks the position (it's a min), and only bites when
+        # sl_pct is wide (>~6%); normal ~3% SL trades are unchanged. Makes RISK_PCT real.
+        if getattr(self.cfg, 'RISK_NORMALIZE_SIZE', True) and sl_pct > 0:
+            _risk_cap = getattr(self.cfg, 'risk_amount', self.cfg.TOTAL_CAPITAL * getattr(self.cfg, 'RISK_PCT', 0.02)) / sl_pct
+            if _risk_cap < size:
+                log.info(f"  🛡️ {sig.pair} risk-cap size ${size:.2f}→${_risk_cap:.2f} "
+                         f"(SL {sl_pct*100:.1f}% × RISK {getattr(self.cfg, 'RISK_PCT', 0.02)*100:.0f}%)")
+                size = _risk_cap
         # v8.4 FIX: Actually apply ddshield multiplier to size
         if hasattr(self, 'ddshield'):
             dd_mult = self.ddshield.risk_multiplier
@@ -687,9 +696,10 @@ class Risk:
         # the 10% ceiling. Floor doesn't apply post-slip because slip already
         # respected it.
         _sl_pct = abs(sig.price - sig.sl) / sig.price if sig.price > 0 else 0.01
-        if _sl_pct > 0.10:
-            log.warning(f"  ⚠️ {sig.pair} post-slip SL exceeds 10% — capping (sl_pct={_sl_pct*100:.2f}%)")
-            _sl_pct = 0.10
+        _max_sl = getattr(self.cfg, 'MAX_SL_PCT', 0.10)
+        if _sl_pct > _max_sl:
+            log.warning(f"  ⚠️ {sig.pair} post-slip SL exceeds {_max_sl*100:.0f}% — capping (sl_pct={_sl_pct*100:.2f}%)")
+            _sl_pct = _max_sl
         _capped_sl = sig.price * (1 - _sl_pct)
         pos=Position(pair=sig.pair,entry=sig.price,qty=qty,size=size,
             entry_time=datetime.now(timezone.utc).isoformat(),sl=_capped_sl,tp=sig.tp,

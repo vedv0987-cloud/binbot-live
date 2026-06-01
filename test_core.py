@@ -435,6 +435,31 @@ class TestSLFloorRelocation(unittest.TestCase):
         self.assertAlmostEqual(sig.sl, 1900.0, places=2,
             msg="normal SL was modified — caps should only fire outside [3%, 10%]")
 
+    def test_risk_normalized_size_caps_dollar_risk(self):
+        """v18.9.6: with RISK_NORMALIZE_SIZE on, a wide (but in-band) stop shrinks the
+        position so dollar risk (size × sl_pct) never exceeds risk_amount. High-capital
+        fixture so the % caps don't bind and the risk-cap is the dominant constraint."""
+        self.cfg.RISK_NORMALIZE_SIZE = True
+        # SL 8% — within [3%,10%] so it's NOT widened; risk-cap should bind instead.
+        sig = make_signal(pair="BTCUSDT", price=100.0, sl=92.0, tp=140.0)
+        ok, reason, size = self.risk.can_trade(sig)
+        self.assertTrue(ok, f"can_trade refused: {reason}")
+        sl_pct = (sig.price - sig.sl) / sig.price
+        self.assertAlmostEqual(size * sl_pct, self.cfg.risk_amount,
+            delta=self.cfg.risk_amount * 0.05,
+            msg=f"dollar risk ${size*sl_pct:.2f} should ≈ risk_amount ${self.cfg.risk_amount}")
+
+    def test_risk_cap_invariant_holds_for_tight_sl(self):
+        """v18.9.6: the risk-normalize invariant — dollar risk (size × sl_pct) never
+        exceeds risk_amount — also holds for a normal ~3% SL. Here the natural size is
+        already below the cap, so the position is not artificially clamped."""
+        sig = make_signal(pair="BTCUSDT", price=100.0, sl=97.0, tp=106.0)
+        ok, reason, size = self.risk.can_trade(sig)
+        self.assertTrue(ok, f"can_trade refused: {reason}")
+        sl_pct = (sig.price - sig.sl) / sig.price
+        self.assertLessEqual(size * sl_pct, self.cfg.risk_amount * 1.02,
+            msg=f"dollar risk ${size*sl_pct:.2f} exceeds risk_amount ${self.cfg.risk_amount}")
+
     @unittest.skip("v14.6 sizing formula changed — needs rewrite")
     def test_huge_sl_capped_to_ceiling(self):
         """v13.5 TEST 13: SL > 10% is capped to 10%; SL is rewritten on sig."""
