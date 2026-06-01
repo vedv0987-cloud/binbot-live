@@ -161,7 +161,15 @@ class NativeSLManager:
             if not self.detach(pos):
                 return False
             # Update pos.sl to the new value before re-placing (caller already did this)
-            return self.attach(pos)
+            if self.attach(pos):
+                return True
+            # v18.9.6: detach succeeded but re-attach FAILED → the position now has NO
+            # exchange-side stop. Make it loud (was silent) so the naked window is visible;
+            # the software SL covers it live, and recover_missing()/caller-retry re-place it.
+            self._note_failure(f"move({pos.pair}): re-attach failed after detach — NO native SL until recovery")
+            log.warning(f"⚠️ Native SL MOVE left {pos.pair} without an exchange stop "
+                        f"(old cancelled, new re-attach failed) — software SL active, will retry/recover")
+            return False
         finally:
             with self._moving_lock:
                 self._moving_pairs.discard(pos.pair)

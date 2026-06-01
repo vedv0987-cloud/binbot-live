@@ -399,6 +399,21 @@ class ProBotV11:
         except Exception:
             pass
 
+    def _blk_warn(self, name, exc):
+        """v18.9.6: surface a protective entry-block that RAISED (previously a silent
+        fail-open `except: pass`). Throttled to once per ~5min per block so a chronically
+        broken tracker is VISIBLE in the log instead of silently disabling its protection."""
+        try:
+            now = time.time()
+            if not hasattr(self, '_blk_warn_ts'):
+                self._blk_warn_ts = {}
+            if now - self._blk_warn_ts.get(name, 0) >= 300:
+                self._blk_warn_ts[name] = now
+                log.warning(f"⚠️ risk-block '{name}' fail-open (raised → treated as not-blocked): "
+                            f"{type(exc).__name__}: {exc}")
+        except Exception:
+            pass
+
     async def _detach_native_sl_before_sell(self, pos, reason="SELL"):
         """Cancel attached exchange-side SL before a bot-initiated market sell."""
         # v14.4: Also cancel native TP order to prevent double-sell
@@ -518,58 +533,58 @@ class ProBotV11:
         try:
             if self.funding_rate.should_block(sig.pair):
                 return block("funding_rate", "funding-rate extreme")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("funding_rate", _e)
         try:
             if self.liquidation.should_block():
                 return block("liquidation_cascade", "liquidation cascade")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("liquidation_cascade", _e)
         try:
             await asyncio.to_thread(self.vol_delta.update, sig.pair)
             if self.vol_delta.should_block(sig.pair):
                 return block("vol_delta", f"institutional sell delta={self.vol_delta.get_score(sig.pair):+.2f}")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("vol_delta", _e)
         try:
             await asyncio.to_thread(self.lob.update, sig.pair)
             if self.lob.should_block(sig.pair):
                 return block("lob_imbalance", f"OBI={self.lob.get_obi(sig.pair):+.2f}")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("lob_imbalance", _e)
         try:
             await asyncio.to_thread(self.vpin.update, sig.pair)
             if self.vpin.should_block(sig.pair):
                 return block("vpin", f"VPIN={self.vpin.get_vpin(sig.pair):.2f}")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("vpin", _e)
         try:
             if self.liq_cascade.should_block(sig.pair):
                 return block("liq_cascade", "cascade active")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("liq_cascade", _e)
         try:
             if self.spot_perp.should_block(sig.pair):
                 return block("basis_extreme", self.spot_perp.status(sig.pair))
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("basis_extreme", _e)
         try:
             if self.crypto_news.should_block(sig.pair):
                 return block("crypto_news", "news risk")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("crypto_news", _e)
         # v18.9.5: Binance OFFICIAL delisting / halt gate (fail-open)
         try:
             if getattr(self.cfg, 'BINANCE_ANNOUNCE_ENABLED', True) and self.binance_announce.should_block(sig.pair):
                 return block("delist_halt", "Binance delisting/halt")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("delist_halt", _e)
         try:
             sig_atr_p = sig.atr/max(sig.price,0.001)*100 if sig.price>0 else 1.0
             if self.rl.should_block(ctx.regime, ctx.daily, sig_atr_p, ctx.fg):
                 return block("rl_agent", "RL risk state")
-        except Exception:
-            pass
+        except Exception as _e:
+            self._blk_warn("rl_agent", _e)
         # v16.0.0: Block #19 — Token Unlock
         # v16.0.0: Block #20 — Economic Calendar (FOMC/CPI/NFP)
         return False
@@ -753,7 +768,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.6 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.7 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -2395,6 +2410,14 @@ class ProBotV11:
             rev=(price-pb.lowest)/pb.lowest*100 if pb.lowest>0 else 0
             if rev>=self.cfg.TRAIL_BUY_PCT:
                 pb.signal.price = price  # v11.2.21 FIX: update price BEFORE can_trade (was stale signal price)
+                # v18.9.6: a queued trail-buy must RE-PASS the hard risk blocks before it fires —
+                # conditions (cascade, delisting, funding, news, correlation…) can deteriorate in
+                # the minutes between queueing and the reversal trigger. Was: only can_trade + regime.
+                await self._apply_hard_risk_blocks(pb.signal, ctx)
+                if getattr(pb.signal, 'conf', 0) <= 0:
+                    log.info(f"🚫 Trail BUY {sym} dropped — hard risk block fired after queue")
+                    to_remove.append(sym)
+                    continue
                 ok,reason,size=self.risk.can_trade(pb.signal,ctx.fg)
                 result = None  # v11.2.10 FIX: must initialize before branches — TREND_DOWN path skips both
                 if ok and ctx.regime != "TREND_DOWN":
