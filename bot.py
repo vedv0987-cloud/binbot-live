@@ -164,7 +164,7 @@ from lob_imbalance import LOBImbalanceTracker
 from intelligence import (FundingRateTracker, LiquidationDetector, SmartCoinDetector,
     CryptoPanicNews, MomentumScanner, LiquidationCascadeTracker, SpotPerpBasisTracker,
     StatArbSignal, VPINTracker, KalmanPairsSpreader, AzureOpenAIIntelligence,
-    TokenUnlockTracker, EconomicCalendar)
+    TokenUnlockTracker, EconomicCalendar, BinanceAnnouncements)
 
 class ProBotV11:
     def __init__(self, cfg):
@@ -298,6 +298,7 @@ class ProBotV11:
         self.liquidation=LiquidationDetector()
         self.smart_coin=SmartCoinDetector()
         self.crypto_news=CryptoPanicNews()
+        self.binance_announce=BinanceAnnouncements(getattr(cfg,'ANNOUNCE_REFRESH_SEC',900))  # v18.9.5: delist/halt gate
         self.azure_openai = AzureOpenAIIntelligence()
         self.momentum=MomentumScanner()
         self.bt=Backtester(self.ex,TA,cfg)
@@ -549,6 +550,12 @@ class ProBotV11:
                 return block("crypto_news", "news risk")
         except Exception:
             pass
+        # v18.9.5: Binance OFFICIAL delisting / halt gate (fail-open)
+        try:
+            if getattr(self.cfg, 'BINANCE_ANNOUNCE_ENABLED', True) and self.binance_announce.should_block(sig.pair):
+                return block("delist_halt", "Binance delisting/halt")
+        except Exception:
+            pass
         try:
             sig_atr_p = sig.atr/max(sig.price,0.001)*100 if sig.price>0 else 1.0
             if self.rl.should_block(ctx.regime, ctx.daily, sig_atr_p, ctx.fg):
@@ -738,7 +745,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.4 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.5 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + Binance delist/halt gate (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -1003,6 +1010,10 @@ class ProBotV11:
         except Exception: pass
         try: self.econ_calendar.update()
         except Exception: pass
+        # v18.9.5: prime Binance delist/halt gate at boot (fail-open)
+        if getattr(self.cfg, 'BINANCE_ANNOUNCE_ENABLED', True):
+            try: await asyncio.to_thread(self.binance_announce.update, self.cfg.PAIRS, self.ex.cl)
+            except Exception: pass
 
         # v8.3: Fetch DXY + Options on startup
         try: await asyncio.to_thread(self.dxy.update)
@@ -1163,6 +1174,11 @@ class ProBotV11:
                 _hb.write(str(int(time.time())))
         except Exception: pass
         if self.cycles % 50 == 0: asyncio.get_event_loop().run_in_executor(None, gc.collect)  # v16.0 AUDIT FIX M4: was gc.collect() blocking hot path — now background thread
+
+        # v18.9.5: refresh Binance delist/halt gate (self-throttled by TTL ~15min; fail-open)
+        if getattr(self.cfg, 'BINANCE_ANNOUNCE_ENABLED', True) and self.cycles % 20 == 0:
+            try: await asyncio.to_thread(self.binance_announce.update, self.cfg.PAIRS, self.ex.cl)
+            except Exception: pass
 
         # v16.0.0 NEW: gate-rejection telemetry histogram (helps tune MIN_CONF/heat/cooldown).
         if getattr(self.cfg, 'GATE_TELEMETRY_ENABLED', True):

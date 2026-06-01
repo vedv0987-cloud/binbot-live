@@ -820,5 +820,50 @@ class TestSessionFilter(unittest.TestCase):
         self.assertFalse(self.risk._session_ok("IOTXUSDT", now_min=1140, dst_shift=60)[0])
 
 
+class TestBinanceAnnouncements(unittest.TestCase):
+    """v18.9.5: Binance OFFICIAL delisting/halt pre-trade gate."""
+
+    def _gate(self):
+        from intelligence import BinanceAnnouncements
+        return BinanceAnnouncements()
+
+    def test_delist_title_blocks_only_managed_named_coins(self):
+        a = self._gate()
+        managed = {"FOO", "BAZ", "BTC"}
+        a._delist = a._symbols_in_title("Binance Will Delist FOO and BAZ on 2026-06-10", managed)
+        self.assertTrue(a.should_block("FOOUSDT"))
+        self.assertTrue(a.should_block("BAZUSDT"))
+        self.assertFalse(a.should_block("BTCUSDT"))   # not named → not blocked
+
+    def test_random_tokens_never_match(self):
+        # 'WILL'/'BINANCE'/'DELIST' tokens must not block coins we don't manage
+        a = self._gate()
+        a._delist = a._symbols_in_title("Binance Will Delist FOO", {"BTC", "ETH"})
+        self.assertEqual(a._delist, set())
+        self.assertFalse(a.should_block("BTCUSDT"))
+
+    def test_halted_symbol_blocks(self):
+        a = self._gate()
+        a._halted = {"XYZ"}
+        self.assertTrue(a.should_block("XYZUSDT"))
+        self.assertFalse(a.should_block("ETHUSDT"))
+
+    def test_fail_open_when_no_data(self):
+        # Fresh gate (feed never succeeded) must NEVER block — outage can't halt trading
+        a = self._gate()
+        self.assertFalse(a.should_block("BTCUSDT"))
+
+    def test_titles_parse_defensively(self):
+        from intelligence import BinanceAnnouncements
+        payload = {"data": {"catalogs": [
+            {"articles": [{"title": "Binance Will Delist ABC"}, {"title": "New listing XYZ"}]}]}}
+        titles = BinanceAnnouncements._titles_from_payload(payload)
+        self.assertEqual(len(titles), 2)
+        self.assertIn("Binance Will Delist ABC", titles)
+        # malformed payloads return [] rather than raising
+        self.assertEqual(BinanceAnnouncements._titles_from_payload(None), [])
+        self.assertEqual(BinanceAnnouncements._titles_from_payload({"data": {}}), [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

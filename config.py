@@ -379,6 +379,11 @@ class Config:
     # News
     NEWS_ENABLED: bool = True
     NEWS_WEIGHT: float = 0.15
+    # v18.9.5: Binance OFFICIAL announcements gate (delisting / halt). Blocks NEW
+    # entries only on a managed coin that's being delisted or isn't actively
+    # TRADING. FAIL-OPEN — a feed/API outage never blocks trading.
+    BINANCE_ANNOUNCE_ENABLED: bool = True
+    ANNOUNCE_REFRESH_SEC: int = 900
 
     # v13.5: pre-event lead time (hours BEFORE event-day start to begin blocking).
     # Default 0 keeps original v13.4 behavior (only blocks last 12h before

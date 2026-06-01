@@ -6,7 +6,7 @@
 4. CryptoPanicNews — Real-time crypto news sentiment (free RSS)
 5. MomentumScanner — Cross-pair momentum divergence detector
 """
-import json, time, logging, urllib.request, os
+import json, time, logging, urllib.request, os, re
 from collections import defaultdict
 from pathlib import Path
 
@@ -418,6 +418,117 @@ class CryptoPanicNews:
 
     def status(self):
         return f"News:{self._global_score:+.2f}"
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MODULE 4b: Binance OFFICIAL Announcements gate (delisting / halt)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+class BinanceAnnouncements:
+    """v18.9.5 — pre-trade safety gate from Binance OFFICIAL signals.
+
+    Two layers, both FAIL-OPEN (any error leaves trading UNBLOCKED — a feed
+    outage must NEVER halt the bot):
+      1. Authoritative live symbol status via exchangeInfo (the bot's own client):
+         a managed USDT pair whose status != TRADING / not spot-allowed, or that
+         has vanished from exchangeInfo entirely, is treated as delisted/halted.
+      2. Early-warning delisting announcements (best-effort web feed): titles
+         containing a delist keyword → the managed coins named in that title.
+
+    `should_block(pair)` is pure (no network); call `update()` periodically. It
+    only ever blocks NEW entries — a conservative, safe-side action (you never
+    want to buy a coin that's being delisted or is halted).
+    """
+    DELIST_KW = ('delist', 'will remove', 'removal of', 'cease trading',
+                 'ceases trading', 'will cease', 'suspend the trading of')
+    _ANN_URL = ("https://www.binance.com/bapi/composite/v1/public/cms/article/"
+                "catalog/list/query?catalogId=161&pageNo=1&pageSize=20")
+    _UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
+
+    def __init__(self, ttl_sec=900):
+        self.ttl = ttl_sec
+        self._delist = set()      # base assets with a delisting announced
+        self._halted = set()      # base assets not actively TRADING per exchangeInfo
+        self._titles = []
+        self._ts = 0.0
+        self._fails = 0
+
+    @staticmethod
+    def _titles_from_payload(data):
+        """Defensively pull article titles out of the bapi CMS response shape."""
+        out = []
+        try:
+            cats = ((data or {}).get('data') or {}).get('catalogs') or []
+            for c in cats:
+                for a in (c.get('articles') or []):
+                    t = a.get('title')
+                    if t:
+                        out.append(t)
+        except Exception:
+            pass
+        return out
+
+    @staticmethod
+    def _symbols_in_title(title, managed_bases):
+        """Return the managed base assets explicitly named in a title (intersection
+        only — random uppercase tokens never match, so no false delistings)."""
+        if not managed_bases:
+            return set()
+        toks = set(re.findall(r'[A-Z0-9]{2,10}', (title or '').upper()))
+        return {b for b in managed_bases if b in toks}
+
+    def update(self, managed_pairs=None, client=None):
+        now = time.time()
+        if now - self._ts < self.ttl:
+            return
+        self._ts = now
+        managed_pairs = list(managed_pairs or [])
+        managed_bases = {p.replace('USDT', '') for p in managed_pairs}
+
+        # Layer 1 — authoritative live status (reliable, via existing client)
+        if client is not None:
+            try:
+                info = client.get_exchange_info()
+                syms = info.get('symbols', [])
+                live = {s['symbol'] for s in syms}
+                halted = set()
+                for s in syms:
+                    if s.get('quoteAsset') != 'USDT':
+                        continue
+                    if s.get('status') != 'TRADING' or not s.get('isSpotTradingAllowed', True):
+                        halted.add(s.get('baseAsset', ''))
+                for p in managed_pairs:        # vanished from exchangeInfo = delisted
+                    if p not in live:
+                        halted.add(p.replace('USDT', ''))
+                self._halted = {b for b in halted if b}
+            except Exception:
+                pass  # fail-open: keep previous
+
+        # Layer 2 — delisting announcements (best-effort early warning)
+        try:
+            req = urllib.request.Request(self._ANN_URL, headers=self._UA)
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode())
+            titles = self._titles_from_payload(data)
+            delist = set()
+            for t in titles:
+                if any(k in t.lower() for k in self.DELIST_KW):
+                    delist |= self._symbols_in_title(t, managed_bases)
+            self._titles = titles[:10]
+            self._delist = delist
+            self._fails = 0
+        except Exception:
+            self._fails += 1  # fail-open: keep previous _delist (may be empty)
+
+        if self._delist or self._halted:
+            log.info(f"📢 Binance announce gate: delist={sorted(self._delist)} "
+                     f"halted={sorted(self._halted)[:6]}")
+
+    def should_block(self, symbol="BTCUSDT"):
+        base = symbol.replace('USDT', '')
+        return base in self._delist or base in self._halted
+
+    def status(self):
+        return f"announce delist={len(self._delist)} halted={len(self._halted)}"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
