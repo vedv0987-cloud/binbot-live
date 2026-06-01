@@ -51,6 +51,11 @@ catboost_info/
 BinBot_V*.zip
 *.zip
 
+# ── Backups (backup.sh tarballs CONTAIN .env — never commit) ──
+binbot_backups/
+*.tgz
+*.tar.gz
+
 # ── Python / tooling ──
 __pycache__/
 *.py[cod]
