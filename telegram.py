@@ -298,6 +298,30 @@ class Telegram:
         msg = f"{icon} <b>{event_type}</b>\n{details}"
         self.send(msg)
 
+    # ── v18.9.11 NEW: register the slash-command MENU (the blue "Menu" button) ──
+    def set_commands(self):
+        """Register the bot's command menu via Telegram setMyCommands, so the blue
+        'Menu' button shows the command list with descriptions. Called once at startup."""
+        if not self.cfg.TG_ENABLED:
+            return
+        cmds = [
+            {"command": "status",      "description": "equity, day P&L, positions, paused"},
+            {"command": "positions",   "description": "open positions with live P&L"},
+            {"command": "pause",       "description": "stop opening new positions"},
+            {"command": "resume",      "description": "resume normal operation"},
+            {"command": "force_close", "description": "close ALL positions (2-step)"},
+            {"command": "help",        "description": "command list"},
+        ]
+        try:
+            url = f"https://api.telegram.org/bot{self.cfg.TG_BOT_TOKEN}/setMyCommands"
+            data = json.dumps({"commands": cmds}).encode()
+            req = urllib.request.Request(url, data=data,
+                                         headers={"Content-Type": "application/json"})
+            urllib.request.urlopen(req, timeout=5)
+            log.info("📋 Telegram command menu registered (Menu button)")
+        except Exception as e:
+            log.warning(f"setMyCommands failed: {e}")
+
     def close(self):
         self._shutdown = True
         try:

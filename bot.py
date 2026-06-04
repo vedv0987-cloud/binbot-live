@@ -343,6 +343,9 @@ class ProBotV11:
             from telegram_commands import TelegramCommandHandler
             self._tg_cmd_handler = TelegramCommandHandler(cfg, self)
             self._tg_cmd_handler.start()
+            # v18.9.11: register the slash-command menu so Telegram shows the blue "Menu" button
+            try: self.tg.set_commands()
+            except Exception as _sc_e: log.debug(f"set_commands skipped: {_sc_e}")
         except Exception as _tg_cmd_e:
             log.warning(f"TG command handler wiring failed: {_tg_cmd_e}")
         # v11.2.10: Position reconciliation — compares bot vs Binance balances
