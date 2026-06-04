@@ -34,8 +34,11 @@ class Config:
     # v18.9.6: per-trade SL ceiling + risk-normalized sizing. With RISK_NORMALIZE_SIZE on,
     # a wider/slipped stop SHRINKS the position so dollar risk never exceeds RISK_PCT of
     # capital (was: size fixed at ~33% regardless of SL width → real risk floated to ~3.3%).
-    MAX_SL_PCT: float = 0.10
+    MAX_SL_PCT: float = 0.05
     RISK_NORMALIZE_SIZE: bool = True
+    # v18.9.9: signed-request recv window (ms) + per-entry liquidity floor (audit fixes)
+    RECV_WINDOW_MS: int = 10000
+    MIN_24H_VOL_USD: float = 5_000_000.0  # skip entries on coins thinner than this (live 24h quote vol)
     MAX_POSITIONS: int = 2  # v14.6.5 AUDIT FIX: Option C — 2 positions (spreads risk vs old SNIPER_90 single trade)
     MAX_EXPOSURE: float = 0.75   # v14.6.5 AUDIT FIX: Option C — 75% max exposure (down from 90% for safety)
     POSITION_SIZE_PCT: float = 0.3333  # v18.7.4: base fraction of capital per trade (was hardcoded
@@ -51,8 +54,8 @@ class Config:
     CAPITAL_TIER_ENABLED: bool = True
     SMALL_TIER_USD: float = 100.0       # v18.8: below $100 → 1 concentrated position (was $50)
     SMALL_TIER_MAX_POS: int = 1         # below $100: max 1 position
-    SMALL_TIER_SIZE_PCT: float = 0.90   # below $100: 90% of balance per trade (10% free buffer)
-    SMALL_TIER_EXPOSURE: float = 0.90   # below $100: max 90% exposure (keeps the 10% buffer)
+    SMALL_TIER_SIZE_PCT: float = 0.50   # v18.9.9 (audit): 50% (was 90% — capped per-trade risk; risk-normalize + 5% SL ceiling keep one trade ≤~2.5%)
+    SMALL_TIER_EXPOSURE: float = 0.60   # v18.9.9 (audit): 60% (was 90%)
     NORMAL_MAX_POS: int = 2             # max positions at/above SMALL_TIER_USD (current setting)
     NORMAL_SIZE_PCT: float = 0.3333     # per-trade fraction at/above SMALL_TIER_USD (current)
     NORMAL_EXPOSURE: float = 0.75       # max exposure at/above SMALL_TIER_USD (current)
@@ -102,7 +105,6 @@ class Config:
         {"s":"ALGOUSDT", "n":"ALGO", "g":"A","t":1},
         {"s":"EGLDUSDT", "n":"EGLD", "g":"A","t":1},
         {"s":"VETUSDT", "n":"VET", "g":"A","t":1},
-        {"s":"FTMUSDT", "n":"FTM", "g":"A","t":1},
         {"s":"INJUSDT", "n":"INJ", "g":"A","t":1},
         {"s":"TIAUSDT", "n":"TIA", "g":"A","t":1},
         {"s":"SEIUSDT", "n":"SEI", "g":"A","t":1},
@@ -418,7 +420,7 @@ class Config:
     ATH_PROTECT: bool = True
     SPLIT_MODE: bool = True
     FIXED_CAPITAL_MODE: bool = False  # v11.2.15: never auto-sync capital from wallet
-    MIN_RR: float = 1.2  # v10.0: was 1.2 — needs margin over 0.2% round-trip fees (effective RR ≈ 1.3 after fees)
+    MIN_RR: float = 1.35  # v18.9.9 (audit): 1.35 — keeps net expectancy positive when hybrid-maker falls back to taker (was 1.2)
     MIN_CONF: float = 0.80  # audit fix: raised from 0.55 — only high-conviction trades
     SESSION_FILTER: bool = True  # v9.2: trade only in active kill zones (Asia/London/NY)
     MAX_DAILY_TRADES: int = 20  # v11.2.15: unlimited wins, only loss % stops bot
@@ -669,6 +671,15 @@ class Config:
             warns.append("GRID_ENABLED=True but GRID_SAFE=False — Grid has a known desync bug")
         if self.DEADMAN_ACTION not in ("alert", "flatten"):
             warns.append(f"DEADMAN_ACTION={self.DEADMAN_ACTION!r} invalid (use 'alert'|'flatten')")
+        # v18.9.9 (audit): cover the values the capital-tier manager mutates live + size/SL sanity
+        if not (0 < self.POSITION_SIZE_PCT <= 1.0):
+            warns.append(f"POSITION_SIZE_PCT={self.POSITION_SIZE_PCT} out of (0,1]")
+        if not (0 < self.SMALL_TIER_SIZE_PCT <= 1.0):
+            warns.append(f"SMALL_TIER_SIZE_PCT={self.SMALL_TIER_SIZE_PCT} out of (0,1]")
+        if not (0 < self.SMALL_TIER_EXPOSURE <= 1.0):
+            warns.append(f"SMALL_TIER_EXPOSURE={self.SMALL_TIER_EXPOSURE} out of (0,1]")
+        if self.MAX_SL_PCT < self.STOP_LOSS_PCT:
+            warns.append(f"MAX_SL_PCT={self.MAX_SL_PCT} < STOP_LOSS_PCT={self.STOP_LOSS_PCT} (ceiling below floor)")
         for w in warns:
             _sys.stderr.write(f"⚠️  CONFIG: {w}\n")
         return warns

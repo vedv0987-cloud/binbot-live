@@ -224,6 +224,11 @@ class CapitalTierManager:
             mp  = int(getattr(self.cfg, 'NORMAL_MAX_POS', 2))
             psz = float(getattr(self.cfg, 'NORMAL_SIZE_PCT', 0.3333))
             exp = float(getattr(self.cfg, 'NORMAL_EXPOSURE', 0.75))
+        # v18.9.9 (audit): clamp the live-mutated values so a bad tier config can never
+        # push size/exposure above 100% or positions below 1 (validate() runs pre-switch).
+        mp  = max(1, mp)
+        psz = min(max(psz, 0.0), 1.0)
+        exp = min(max(exp, 0.0), 1.0)
         self.cfg.MAX_POSITIONS     = mp
         self.cfg.POSITION_SIZE_PCT = psz
         self.cfg.MAX_EXPOSURE      = exp
