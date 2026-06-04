@@ -2942,6 +2942,19 @@ class ProBotV11:
             if len(self.risk.positions) + len(self._limit_orders) >= self.cfg.MAX_POSITIONS:
                 log.info("⛔ position cap reached (open+pending) — no more entries this cycle")
                 break
+            # v18.9.9 (audit M3): liquidity floor — skip coins thinner than MIN_24H_VOL_USD so we
+            # don't enter illiquid names (wide spreads / SL slippage). Fail-open on any hiccup.
+            _minvol = getattr(self.cfg, 'MIN_24H_VOL_USD', 0)
+            if _minvol and _minvol > 0:
+                try:
+                    _tk = await self.ex.get_ticker(sig.pair)
+                    _qv = float(_tk.get('quoteVolume', 0)) if isinstance(_tk, dict) else 0.0
+                    if 0 < _qv < _minvol:
+                        log.info(f"💤 {sig.pair} SKIP[thin] — 24h vol ${_qv:,.0f} < ${_minvol:,.0f}")
+                        self._gate_reject("thin_volume")
+                        continue
+                except Exception:
+                    pass  # fail-open: a ticker hiccup must not block trading
             # v13.2: Attach MTF alignment for position sizing in risk.py
             sig._ctx_mtf_align = getattr(ctx, 'mtf_align', 50)
             ok,reason,size=self.risk.can_trade(sig,ctx.fg)

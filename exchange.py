@@ -531,10 +531,16 @@ class Exchange:
             log.warning(f"⚠️ Balance check failed {sym}: {e} — aborting buy")
             return {"error": "data_fetch_failed"}
 
+        # v18.9.9 (audit H1): stable client-order-id reused across retries. If a market order
+        # executed but its response timed out, the retry re-POSTs the SAME id and Binance
+        # rejects the duplicate — preventing a double fill (orphan, if any, is reconciled).
+        import secrets as _secrets
+        _cid = "x" + _secrets.token_hex(11)
         async def _do_buy():
             o = await self._signed_post("/api/v3/order", {
                 "symbol": sym, "side": "BUY", "type": "MARKET",
-                "quantity": self._fmt_qty(sym, qty)
+                "quantity": self._fmt_qty(sym, qty),
+                "newClientOrderId": _cid,
             })
             log.info(f"✅ BUY {sym} Qty:{qty} ID:{o.get('orderId')}")
             return o
@@ -649,10 +655,15 @@ class Exchange:
         except Exception as _e:
             log.debug(f"Sell price check: {_e}")
 
+        # v18.9.9 (audit H1): stable client-order-id reused across retries so a timed-out
+        # market sell can't be double-submitted (exchange dedupes the duplicate id).
+        import secrets as _secrets
+        _cid = "x" + _secrets.token_hex(11)
         async def _do_sell():
             o = await self._signed_post("/api/v3/order", {
                 "symbol": sym, "side": "SELL", "type": "MARKET",
-                "quantity": self._fmt_qty(sym, qty)
+                "quantity": self._fmt_qty(sym, qty),
+                "newClientOrderId": _cid,
             })
             log.info(f"✅ SELL {sym} Qty:{qty} ID:{o.get('orderId')}")
             return o
