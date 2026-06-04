@@ -63,8 +63,13 @@ class Config:
     CAPITAL_TIER_ENABLED: bool = True
     SMALL_TIER_USD: float = 100.0       # v18.8: below $100 → 1 concentrated position (was $50)
     SMALL_TIER_MAX_POS: int = 1         # below $100: max 1 position
-    SMALL_TIER_SIZE_PCT: float = 0.50   # v18.9.9 (audit): 50% (was 90% — capped per-trade risk; risk-normalize + 5% SL ceiling keep one trade ≤~2.5%)
-    SMALL_TIER_EXPOSURE: float = 0.60   # v18.9.9 (audit): 60% (was 90%)
+    SMALL_TIER_SIZE_PCT: float = 0.85   # v18.9.10: 85% per trade (user choice — small acct, 1 position, concentrate to grow). Risk still capped by SMALL_TIER_RISK_PCT below.
+    SMALL_TIER_EXPOSURE: float = 0.85   # v18.9.10: match the 85% per-trade size (1 position max)
+    # v18.9.10: small-account per-trade risk budget. Because small balances run only ONE
+    # position, they may concentrate up to SMALL_TIER_SIZE_PCT — but risk-normalize uses THIS
+    # (slightly above the normal 2%) as the hard ceiling on a single trade's loss, so even at
+    # 85% size the worst-case stop-out is ~2.5% of equity (and the 5% SL ceiling bounds slip).
+    SMALL_TIER_RISK_PCT: float = 0.025
     NORMAL_MAX_POS: int = 2             # max positions at/above SMALL_TIER_USD (current setting)
     NORMAL_SIZE_PCT: float = 0.3333     # per-trade fraction at/above SMALL_TIER_USD (current)
     NORMAL_EXPOSURE: float = 0.75       # max exposure at/above SMALL_TIER_USD (current)
@@ -674,6 +679,9 @@ class Config:
             warns.append(f"MIN_RR={self.MIN_RR} < 1.0 (negative expectancy after fees)")
         if self.MIN_CONF > 0.85:
             warns.append(f"MIN_CONF={self.MIN_CONF} very high — may starve the bot of trades")
+        # v18.9.10: small-tier risk budget should stay a controlled notch above the normal cap
+        if not (0 < self.SMALL_TIER_RISK_PCT <= 0.05):
+            warns.append(f"SMALL_TIER_RISK_PCT={self.SMALL_TIER_RISK_PCT} out of (0, 0.05] — single-trade loss could be excessive")
         if self.MAX_POSITIONS < 1:
             warns.append(f"MAX_POSITIONS={self.MAX_POSITIONS} < 1 — bot cannot open trades")
         if self.GRID_ENABLED and not self.GRID_SAFE:

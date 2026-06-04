@@ -495,10 +495,18 @@ class Risk:
         # RISK_PCT of capital. Only shrinks the position (it's a min), and only bites when
         # sl_pct is wide (>~6%); normal ~3% SL trades are unchanged. Makes RISK_PCT real.
         if getattr(self.cfg, 'RISK_NORMALIZE_SIZE', True) and sl_pct > 0:
-            _risk_cap = getattr(self.cfg, 'risk_amount', self.cfg.TOTAL_CAPITAL * getattr(self.cfg, 'RISK_PCT', 0.02)) / sl_pct
+            _risk_budget = getattr(self.cfg, 'risk_amount', self.cfg.TOTAL_CAPITAL * getattr(self.cfg, 'RISK_PCT', 0.02))
+            # v18.9.10: small accounts (below SMALL_TIER_USD) run only ONE position, so they
+            # may concentrate more per trade — give them a slightly higher risk budget
+            # (SMALL_TIER_RISK_PCT). The single-trade loss is STILL hard-capped at that budget.
+            if self.cfg.TOTAL_CAPITAL < getattr(self.cfg, 'SMALL_TIER_USD', 100):
+                _str = getattr(self.cfg, 'SMALL_TIER_RISK_PCT', 0)
+                if _str and _str > 0:
+                    _risk_budget = self.cfg.TOTAL_CAPITAL * _str
+            _risk_cap = _risk_budget / sl_pct
             if _risk_cap < size:
                 log.info(f"  🛡️ {sig.pair} risk-cap size ${size:.2f}→${_risk_cap:.2f} "
-                         f"(SL {sl_pct*100:.1f}% × RISK {getattr(self.cfg, 'RISK_PCT', 0.02)*100:.0f}%)")
+                         f"(SL {sl_pct*100:.1f}% × risk-budget ${_risk_budget:.2f})")
                 size = _risk_cap
         # v8.4 FIX: Actually apply ddshield multiplier to size
         if hasattr(self, 'ddshield'):
