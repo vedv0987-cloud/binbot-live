@@ -12,11 +12,20 @@ sudo systemctl enable --now "$SERVICE"
 echo "▶ Enabling the watchdog ..."
 sudo systemctl enable --now binbot-watchdog.timer
 
-sleep 3
+# ExecStartPre (pre_start.sh) makes several Binance API calls before the bot's
+# ExecStart begins, so the service can sit in 'activating' for 10-20s. Poll for
+# up to 40s instead of guessing at a fixed sleep (which caused false warnings).
+echo "▶ Waiting for startup (pre_start.sh runs Binance API calls first) ..."
+for _i in $(seq 1 40); do
+  _state="$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
+  [ "$_state" = "active" ] && break
+  [ "$_state" = "failed" ] && break
+  sleep 1
+done
 if systemctl is-active --quiet "$SERVICE"; then
   echo "✅ $SERVICE is ACTIVE and the watchdog is enabled."
   echo "   Logs: journalctl -u $SERVICE -f"
 else
-  echo "⚠️  $SERVICE did not stay active — check: journalctl -u $SERVICE -n 40"
+  echo "⚠️  $SERVICE did not become active within 40s — check: journalctl -u $SERVICE -n 40"
   exit 1
 fi
