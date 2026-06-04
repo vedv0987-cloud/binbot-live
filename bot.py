@@ -506,6 +506,19 @@ class ProBotV11:
                 and getattr(self.cfg, 'BLOCK_QFL_IN_BEAR', True)):
             return block("regime", "QFL_PANIC falling-knife in BEAR daily — skip")
 
+        # v18.9.9 (audit H2): PER-COIN regime guard. ctx.regime is BTC-derived and applied to
+        # every coin, so a coin in its OWN downtrend can pass while BTC is calm. This is strictly
+        # ADDITIVE — it only ever blocks MORE (never unblocks): if the coin's own 5m regime is
+        # TREND_DOWN, skip the long regardless of BTC. (QFL_PANIC is exempt — it's a reversal
+        # play that intentionally buys oversold dumps, already gated by the BEAR-daily block.)
+        if getattr(self.cfg, 'PER_COIN_REGIME_BLOCK', True) and sig.strategy != "QFL_PANIC":
+            try:
+                _cc = self.candle_cache.get(sig.pair, [])
+                if len(_cc) >= 60 and TA.regime_detect(_cc) == "TREND_DOWN":
+                    return block("coin_regime", f"{sig.pair} own 5m trend TREND_DOWN")
+            except Exception:
+                pass
+
         # v16.0.05: BEAR regime max 1 position — all alts fall together on BTC dump.
         # 2 correlated longs in BEAR = double SL hit risk on any market downturn.
         if (getattr(ctx, 'daily', '') == 'BEAR'

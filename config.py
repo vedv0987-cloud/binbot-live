@@ -45,6 +45,9 @@ class Config:
     # v18.9.9 (audit H3): max amount the OB/funding micro-nudges may carry a signal toward
     # MIN_CONF. The pre-nudge conviction must be >= MIN_CONF - this, so a quirk can't gate it in.
     CONF_NUDGE_TOLERANCE: float = 0.03
+    # v18.9.9 (audit H2): also block a long when the COIN's own 5m regime is TREND_DOWN
+    # (the global regime is BTC-derived). Strictly additive — only ever blocks more.
+    PER_COIN_REGIME_BLOCK: bool = True
     MAX_POSITIONS: int = 2  # v14.6.5 AUDIT FIX: Option C — 2 positions (spreads risk vs old SNIPER_90 single trade)
     MAX_EXPOSURE: float = 0.75   # v14.6.5 AUDIT FIX: Option C — 75% max exposure (down from 90% for safety)
     POSITION_SIZE_PCT: float = 0.3333  # v18.7.4: base fraction of capital per trade (was hardcoded
