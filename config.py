@@ -42,6 +42,9 @@ class Config:
     # v18.9.9 (audit H1): drop the still-forming candle so strategies evaluate only CLOSED
     # bars — kills the repaint where signals fire on an intra-bar wick that vanishes on close.
     DROP_UNCLOSED_CANDLE: bool = True
+    # v18.9.9 (audit H3): max amount the OB/funding micro-nudges may carry a signal toward
+    # MIN_CONF. The pre-nudge conviction must be >= MIN_CONF - this, so a quirk can't gate it in.
+    CONF_NUDGE_TOLERANCE: float = 0.03
     MAX_POSITIONS: int = 2  # v14.6.5 AUDIT FIX: Option C — 2 positions (spreads risk vs old SNIPER_90 single trade)
     MAX_EXPOSURE: float = 0.75   # v14.6.5 AUDIT FIX: Option C — 75% max exposure (down from 90% for safety)
     POSITION_SIZE_PCT: float = 0.3333  # v18.7.4: base fraction of capital per trade (was hardcoded

@@ -1495,12 +1495,12 @@ class ProBotV11:
                             pass
                     if "error" in r:
                         await self._restore_native_sl_after_failed_sell(pos, "CRASH")
-                        # Still failing — synthesize close so accounting is correct.
-                        log.warning(f"⚠️ CRASH sell failed {pos.pair}: {r.get('error','?')} — synthesizing close at last-known price")
-                        # v13.5: log to stuck_coins.jsonl so startup-sync recovery sees it.
-                        # Pre-v13.5 only the FORCE_CLOSE path wrote here, leaving CRASH-failed
-                        # positions invisible to recovery (Reconciler would alert as ORPHAN
-                        # but no automatic re-sell would be attempted on next restart).
+                        # v18.9.9 (audit H3): the coins are STILL in the wallet — do NOT synthesize
+                        # a close and drop the position. The old path booked PnL at a price that
+                        # never happened and left the holding unmanaged (no in-process SL) for
+                        # minutes mid-crash. KEEP it tracked so check_exits/software-SL keeps
+                        # retrying the exit; log to stuck_coins.jsonl for restart recovery too.
+                        log.warning(f"⚠️ CRASH sell failed {pos.pair}: {r.get('error','?')} — KEEPING position tracked; will keep retrying the exit")
                         try:
                             stuck = {"pair":pos.pair,"qty":pos.qty,"entry":pos.avg_entry,
                                      "ts":datetime.now(timezone.utc).isoformat(),"reason":"crash_sell_failed"}
@@ -1509,15 +1509,8 @@ class ProBotV11:
                         try:
                             self.tg.send(f"⚠️ <b>CRASH SELL FAILED</b> {pos.pair}\n"
                                          f"Reason: {r.get('error','unknown')}\n"
-                                         f"Position remains in Binance — manual review required.")
+                                         f"Still held + still MANAGED — bot keeps retrying the exit.")
                         except Exception as e: log.warning(f"Crash sell alert failed for {pos.pair}: {e}")
-                        try:
-                            self.risk._record_close(pos, actual_price, "CRASH_STUCK", _crash_ctx, self.tg)
-                        except Exception as e:
-                            log.warning(f"CRASH_STUCK _record_close failed: {e}")
-                        with _pos_lock:
-                            if pos in self.risk.positions:
-                                self.risk.remove_position_safe(pos, expected_reason="CRASH_STUCK")  # v14.6.4 AUDIT FIX
                         continue
                     # extract real fill price from Binance result
                     try:
@@ -3011,6 +3004,9 @@ class ProBotV11:
                 self._gate_reject("corr")  # v16.0.0 telemetry
                 continue
 
+            # v18.9.9 (audit H3): snapshot strategy-native conviction BEFORE the OB/funding
+            # micro-nudges so MIN_CONF can't be satisfied purely by a transient nudge.
+            _base_conf = sig.conf
             # v7: Order book imbalance check
             if sig.strategy not in ("QFL_PANIC",):
                 try:
@@ -3041,8 +3037,12 @@ class ProBotV11:
                     sig.conf = round(max(0, sig.conf - 0.07), 2)
                     log.info(f"💸 {sig.pair} funding {fr:.4f} BEARISH reduce → conf {sig.conf}")
             except Exception: pass
-            # Re-check after adjustments
-            if sig.conf < self.cfg.MIN_CONF: continue
+            # Re-check after adjustments. v18.9.9 (audit H3): also require the PRE-nudge
+            # conviction within a small tolerance of MIN_CONF, so OB/funding nudges can't push
+            # a sub-threshold signal over the line on their own.
+            _nudge_tol = getattr(self.cfg, 'CONF_NUDGE_TOLERANCE', 0.03)
+            if sig.conf < self.cfg.MIN_CONF or _base_conf < self.cfg.MIN_CONF - _nudge_tol:
+                continue
 
             # Trailing Buy
             if self.cfg.TRAILING_BUY and sig.strategy not in ("QFL_PANIC",) and ctx.regime not in ("TREND_UP","TREND_DOWN"):
