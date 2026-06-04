@@ -2944,6 +2944,11 @@ class ProBotV11:
             return
 
         for sig in ranked[:3]:  # v7: Allow 2 signals per cycle
+            # v18.9.9 (audit M2): count pending (unfilled) maker orders toward the position cap
+            # so one fast cycle can't push live positions past MAX_POSITIONS via async fills.
+            if len(self.risk.positions) + len(self._limit_orders) >= self.cfg.MAX_POSITIONS:
+                log.info("⛔ position cap reached (open+pending) — no more entries this cycle")
+                break
             # v13.2: Attach MTF alignment for position sizing in risk.py
             sig._ctx_mtf_align = getattr(ctx, 'mtf_align', 50)
             ok,reason,size=self.risk.can_trade(sig,ctx.fg)

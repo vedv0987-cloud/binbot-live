@@ -503,6 +503,8 @@ class Risk:
         # v8.4 FIX: Actually apply ddshield multiplier to size
         if hasattr(self, 'ddshield'):
             dd_mult = self.ddshield.risk_multiplier
+            # NOTE: _tier() short-circuits to KILLED(0.0) whenever the %-view hits ≥12% DD
+            # (analytics.py:425), so this also covers the small-account case — DD_Kill DOES fire.
             if dd_mult <= 0: return False,"DD_Kill",0
             pass  # v14.6: DD shield size reduction removed
         # B2-1 (applied): graduated event-risk multiplier scales position size
