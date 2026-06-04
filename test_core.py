@@ -890,5 +890,26 @@ class TestBinanceAnnouncements(unittest.TestCase):
         self.assertEqual(BinanceAnnouncements._titles_from_payload({"data": {}}), [])
 
 
+class TestConfigHardening(unittest.TestCase):
+    """v18.9.9 (audit): safe defaults + validate() covers live-mutated tier values."""
+
+    def test_safe_defaults(self):
+        from config import Config
+        c = Config()
+        self.assertLessEqual(c.SMALL_TIER_SIZE_PCT, 0.50, "small-tier size should be capped")
+        self.assertLessEqual(c.MAX_SL_PCT, 0.05, "SL ceiling should be tightened")
+        self.assertGreaterEqual(c.MIN_RR, 1.3, "MIN_RR should clear taker round-trip")
+        self.assertTrue(c.DROP_UNCLOSED_CANDLE, "repaint guard should default on")
+
+    def test_validate_flags_bad_tier_and_sl(self):
+        from config import Config
+        c = Config()
+        c.SMALL_TIER_SIZE_PCT = 1.5   # invalid (>1)
+        c.MAX_SL_PCT = 0.01           # below STOP_LOSS_PCT floor
+        joined = " ".join(c.validate())
+        self.assertIn("SMALL_TIER_SIZE_PCT", joined)
+        self.assertIn("MAX_SL_PCT", joined)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
