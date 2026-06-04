@@ -790,7 +790,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.10 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.11 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -859,7 +859,7 @@ class ProBotV11:
         log.info(f"  Pairs: {len(self.cfg.PAIRS)} | Max {self.cfg.MAX_DAILY_TRADES}/day | Scan: {self.cfg.SCAN_SEC}s")
         log.info("━"*70)
 
-        self.tg.send(f"🚀 <b>BinBot V18.9.10 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
+        self.tg.send(f"🚀 <b>BinBot V18.9.11 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
 
         # v8.3: Sync with Binance — sell ghost coins + cancel orders
         # v8.4 FIX: Only touch assets from PAIRS list — don't sell unrelated holdings
@@ -3321,7 +3321,7 @@ class ProBotV11:
         self.risk.save_state(self.grid.pnl,self.grid.trades,
                              self.hyperopt.best_params if self.hyperopt else None)
         self.ws.stop()
-        self.tg.send(f"🛑 <b>BinBot V18.9.10 GodMode stopped</b>")  # version string
+        self.tg.send(f"🛑 <b>BinBot V18.9.11 GodMode stopped</b>")  # version string
         # v13.5.5: stop dashboard cleanly
         try:
             if getattr(self, "_dashboard", None):
