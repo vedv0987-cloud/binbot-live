@@ -7,7 +7,11 @@ set -uo pipefail
 SERVICE="${SERVICE:-binance-bot-v11}"
 
 echo "▶ Starting $SERVICE ..."
-sudo systemctl enable --now "$SERVICE"
+# enable so it survives reboot; restart (not --now) so it ALWAYS loads the current
+# on-disk code — `enable --now` is a no-op on an already-running service and would
+# leave a stale process running old code after a git pull.
+sudo systemctl enable "$SERVICE"
+sudo systemctl restart "$SERVICE"
 
 echo "▶ Enabling the watchdog ..."
 sudo systemctl enable --now binbot-watchdog.timer
