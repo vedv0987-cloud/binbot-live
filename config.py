@@ -39,6 +39,9 @@ class Config:
     # v18.9.9: signed-request recv window (ms) + per-entry liquidity floor (audit fixes)
     RECV_WINDOW_MS: int = 10000
     MIN_24H_VOL_USD: float = 5_000_000.0  # skip entries on coins thinner than this (live 24h quote vol)
+    # v18.9.9 (audit H1): drop the still-forming candle so strategies evaluate only CLOSED
+    # bars — kills the repaint where signals fire on an intra-bar wick that vanishes on close.
+    DROP_UNCLOSED_CANDLE: bool = True
     MAX_POSITIONS: int = 2  # v14.6.5 AUDIT FIX: Option C — 2 positions (spreads risk vs old SNIPER_90 single trade)
     MAX_EXPOSURE: float = 0.75   # v14.6.5 AUDIT FIX: Option C — 75% max exposure (down from 90% for safety)
     POSITION_SIZE_PCT: float = 0.3333  # v18.7.4: base fraction of capital per trade (was hardcoded

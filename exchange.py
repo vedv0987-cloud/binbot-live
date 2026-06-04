@@ -98,6 +98,9 @@ class Exchange:
             except Exception:
                 pass
         params['timestamp'] = int(time.time() * 1000) + self._time_offset
+        # v18.9.9 (audit H2): widen the recv window (default 5s) so minor VM clock drift
+        # doesn't make Binance reject signed orders (-1021) — which would silently block exits.
+        params.setdefault('recvWindow', int(getattr(self.cfg, 'RECV_WINDOW_MS', 10000)))
         qs = urllib.parse.urlencode(params)
         sig = hmac.new(self._secret, qs.encode(), hashlib.sha256).hexdigest()
         params['signature'] = sig
@@ -325,18 +328,24 @@ class Exchange:
             _batched = False
         if _batched and lim > 1000:
             return await self._klines_batched(sym, iv, lim)
+        # v18.9.9 (audit H1): fetch one extra bar and drop the still-forming last candle so
+        # all TA runs on CLOSED bars only (anti-repaint). Flag-gated for easy revert.
+        _drop = bool(getattr(self.cfg, "DROP_UNCLOSED_CANDLE", True))
+        _req_lim = lim + 1 if _drop else lim
         try:
             raw = await self._public_get("/api/v3/klines",
-                                         {"symbol": sym, "interval": iv, "limit": lim})
+                                         {"symbol": sym, "interval": iv, "limit": _req_lim})
             try:
                 _fo = getattr(self, "_failover_mgr", None)
                 if _fo is not None:
                     _fo.report_binance_ok()
             except Exception:
                 pass
-            return self._validate_candles(
-                [Candle(k[0]/1000, float(k[1]), float(k[2]),
-                        float(k[3]), float(k[4]), float(k[5])) for k in raw])
+            _cs = [Candle(k[0]/1000, float(k[1]), float(k[2]),
+                          float(k[3]), float(k[4]), float(k[5])) for k in raw]
+            if _drop and len(_cs) > 1:
+                _cs = _cs[:-1]  # drop the forming bar
+            return self._validate_candles(_cs)
         except Exception as e:
             log.warning(f"klines {sym} {iv} failed: {e}")
             # Failover

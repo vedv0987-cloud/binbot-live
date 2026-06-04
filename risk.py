@@ -708,6 +708,11 @@ class Risk:
             rr=sig.rr,grade=sig.grade,context=f"{ctx.regime}/{ctx.killzone}",
             regime_at_entry=getattr(ctx, 'daily', ''))  # v18.5 (D5): daily trend at entry
         self.positions.append(pos); self.daily_t+=1; self.fees+=fee
+        # v18.9.9 (audit H1): invalidate the cached real-USDT-free snapshot so `available`
+        # falls back to live (TOTAL_CAPITAL - exposure, which now includes this fill) until the
+        # next wallet sync — stops the next signal in the same cycle being sized against cash
+        # this trade just spent.
+        self._real_usdt_free = None
         # v15.13 FIX (1A): offload native SL/TP attach to background threads.
         # open_pos is called from _cycle — synchronous HTTP calls here block the
         # entire async event loop for 200–800ms per trade, freezing WS feeds and
