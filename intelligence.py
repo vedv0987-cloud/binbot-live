@@ -481,7 +481,7 @@ class BinanceAnnouncements:
             return
         self._ts = now
         managed_pairs = list(managed_pairs or [])
-        managed_bases = {p.replace('USDT', '') for p in managed_pairs}
+        managed_bases = { (p['s'] if isinstance(p, dict) else p).replace('USDT', '') for p in managed_pairs }
 
         # Layer 1 — authoritative live status (reliable, via existing client)
         if client is not None:

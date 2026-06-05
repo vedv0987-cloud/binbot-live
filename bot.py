@@ -2481,12 +2481,13 @@ class ProBotV11:
             news=f" 📰{ctx.news_score:+.2f}" if self.cfg.NEWS_ENABLED else ""
             # v8.3: Export dashboard data
             try:
-                self.dashboard.export(
-                    self.risk.positions, self.grid.pnl, self.risk.wins, self.risk.losses,
-                    ctx.regime, ctx.fg, ctx.heat, self.risk.daily_pnl, self.risk.daily_t,
-                    self.ml.accuracy if self.ml else 0,
-                    "", "", "", ""
-                )
+                if getattr(self, "_dashboard", None):
+                    self._dashboard.export(
+                        self.risk.positions, self.grid.pnl, self.risk.wins, self.risk.losses,
+                        ctx.regime, ctx.fg, ctx.heat, self.risk.daily_pnl, self.risk.daily_t,
+                        self.ml.accuracy if self.ml else 0,
+                        "", "", "", ""
+                    )
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             log.info(
                 f"⏱ #{self.cycles} | {ctx.regime} {ctx.daily}/{ctx.h4} {ctx.killzone}  "
