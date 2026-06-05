@@ -2482,12 +2482,22 @@ class ProBotV11:
             # v8.3: Export dashboard data
             try:
                 if getattr(self, "_dashboard", None):
-                    self._dashboard.export(
-                        self.risk.positions, self.grid.pnl, self.risk.wins, self.risk.losses,
-                        ctx.regime, ctx.fg, ctx.heat, self.risk.daily_pnl, self.risk.daily_t,
-                        self.ml.accuracy if self.ml else 0,
-                        "", "", "", ""
-                    )
+                    _ddata = {
+                        "positions": [vars(p) if hasattr(p, '__dict__') else p for p in self.risk.positions],
+                        "grid_pnl": getattr(self.grid, 'pnl', 0.0) if hasattr(self, 'grid') else 0.0,
+                        "wins": self.risk.wins,
+                        "losses": self.risk.losses,
+                        "regime": ctx.regime,
+                        "fg": ctx.fg,
+                        "heat": ctx.heat,
+                        "daily_pnl": self.risk.daily_pnl,
+                        "trades_today": self.risk.daily_t,
+                        "ml_accuracy": self.ml.accuracy if getattr(self, "ml", None) else 0,
+                        "ts": datetime.now(timezone.utc).isoformat()
+                    }
+                    with open("dashboard_data.json.tmp", "w") as _df:
+                        json.dump(_ddata, _df)
+                    os.replace("dashboard_data.json.tmp", "dashboard_data.json")
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             log.info(
                 f"⏱ #{self.cycles} | {ctx.regime} {ctx.daily}/{ctx.h4} {ctx.killzone}  "
