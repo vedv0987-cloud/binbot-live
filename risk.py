@@ -209,7 +209,7 @@ class Risk:
 
     def paused(self):
         self._reset()
-        if self.daily_pnl<=-self.cfg.max_daily_loss: return True,"DailyLoss"
+        if self.cfg.max_daily_loss > 0 and self.daily_pnl <= -self.cfg.max_daily_loss: return True,"DailyLoss"
         if self.pause_until and datetime.now(timezone.utc)<self.pause_until: return True,"Streak"
         # v10.0: PEAK-EQUITY drawdown (was initial-cap anchor — broke on TOTAL_CAPITAL changes)
         # Track running high-water mark; DD = drop from peak, not from boot value.
@@ -397,7 +397,7 @@ class Risk:
         # v14.6.2: Group D max 1 position
         if sig.group == 'D' and grp >= self.cfg.GROUP_D_MAX_POS:
             return False, 'MaxPos_D', 0
-        if self.exposure>=self.cfg.TOTAL_CAPITAL*self.cfg.MAX_EXPOSURE: return False,"MaxExp",0
+        if self.cfg.TOTAL_CAPITAL > 0 and self.exposure >= self.cfg.TOTAL_CAPITAL * self.cfg.MAX_EXPOSURE: return False,"MaxExp",0
 
         # v7.2: Drawdown shield check — block trades if drawdown > 12%
         # (Applied from bot cycle level)
