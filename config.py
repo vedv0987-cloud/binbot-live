@@ -29,7 +29,7 @@ class Config:
     API_KEY: str = ""  # loaded from .env
     API_SECRET: str = ""  # loaded from .env
     USE_TESTNET: bool = False
-    TOTAL_CAPITAL: float = 45.65  # v13.5.5 fresh start May 12 2026
+    TOTAL_CAPITAL: float = 0.00  # v13.5.5 fresh start May 12 2026
     RISK_PCT: float = 0.02  # v14.6.5 AUDIT FIX: Option C — 2% risk (keeps existing per-trade risk level)
     # v18.9.6: per-trade SL ceiling + risk-normalized sizing. With RISK_NORMALIZE_SIZE on,
     # a wider/slipped stop SHRINKS the position so dollar risk never exceeds RISK_PCT of
@@ -538,7 +538,7 @@ class Config:
     NATIVE_SL_ENABLED: bool = True
     NATIVE_SL_BUFFER_PCT: float = 0.005
     # v13.5.5: Web dashboard (read-only HTTP on :8080) — OFF by default
-    WEB_DASHBOARD_ENABLED: bool = True
+    WEB_DASHBOARD_ENABLED: bool = False
     WEB_DASHBOARD_PORT: int = 8080
     WEB_DASHBOARD_BIND: str = "127.0.0.1"  # v14.5: localhost only — prevents public exposure
     STRESS_TEST_ENABLED: bool = False
