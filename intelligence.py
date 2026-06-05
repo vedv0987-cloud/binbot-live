@@ -496,8 +496,9 @@ class BinanceAnnouncements:
                     if s.get('status') != 'TRADING' or not s.get('isSpotTradingAllowed', True):
                         halted.add(s.get('baseAsset', ''))
                 for p in managed_pairs:        # vanished from exchangeInfo = delisted
-                    if p not in live:
-                        halted.add(p.replace('USDT', ''))
+                    _sym = p['s'] if isinstance(p, dict) else p
+                    if _sym not in live:
+                        halted.add(_sym.replace('USDT', ''))
                 self._halted = {b for b in halted if b}
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # fail-open: keep previous
 
