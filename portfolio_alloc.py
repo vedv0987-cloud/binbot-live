@@ -47,8 +47,8 @@ def _load_trades(path: str = "trades_v9.jsonl") -> List[Dict]:
                 line = line.strip()
                 if not line: continue
                 try: out.append(json.loads(line))
-                except Exception: pass
-    except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
     return out
 
 

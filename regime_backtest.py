@@ -102,8 +102,7 @@ class RegimeAwareBacktester:
                     stats[name][regime]["total_pnl"] += sim["pnl_pct"]
                     if sim["win"]:
                         stats[name][regime]["wins"] += 1
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # Compute derived metrics per (strategy, regime)
         matrix = {}

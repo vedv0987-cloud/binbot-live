@@ -97,16 +97,14 @@ class StateManager:
                     f.flush()
                     try:
                         os.fsync(f.fileno())  # durability — flush kernel buffers to disk
-                    except Exception:
-                        pass  # fsync unsupported on some FS/platforms — best effort
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # fsync unsupported on some FS/platforms — best effort
                 os.replace(tmp, self.path)  # Atomic on Linux + Windows
         except Exception as e:
             log.error(f"State save: {e}")
             try:
                 if os.path.exists(tmp):
                     os.remove(tmp)  # v18.5: don't leak temp files on failure
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def load(self):
         if not os.path.exists(self.path): return None

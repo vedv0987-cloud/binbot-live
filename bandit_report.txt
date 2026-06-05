@@ -1,0 +1,2945 @@
+Run started:2026-06-05 19:38:33.358022+00:00
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\analytics.py:77:24
+76	                            os.replace(self._RESTART_FILE + ".tmp", self._RESTART_FILE)
+77	                        except Exception: pass
+78	                    except Exception: pass
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\analytics.py:78:20
+77	                        except Exception: pass
+78	                    except Exception: pass
+79	        else:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\analytics.py:184:12
+183	                stats[s]["hours"][hr] += pnl
+184	            except Exception: pass
+185	        return stats
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\analytics.py:247:16
+246	                try: log.warning(f"\u26a0\ufe0f  DD shield auto-fix: {_msg}")
+247	                except Exception: pass
+248	                self.peak = sane_ceiling
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\analytics.py:267:12
+266	                         f"(validated against journal, dd={self.drawdown_pct:.1f}%)")
+267	            except Exception: pass
+268	        else:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\analytics.py:277:12
+276	                f"New dd={self.drawdown_pct:.1f}%")
+277	            except Exception: pass
+278	        # Smart floor: peak can never be below current realized capital
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\analytics.py:306:20
+305	                        t = json.loads(line)
+306	                    except Exception:
+307	                        continue
+308	                    if t.get("action") not in CLOSE_ACTIONS:
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\bayesian_opt.py:49:19
+48	        self.n_initial = n_initial
+49	        self.rng = random.Random(random_state)
+50	        if GP_AVAILABLE:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:18:16
+17	                    os.rename(fn, corrupted_fn)
+18	                except Exception:
+19	                    pass
+20	                with open(fn, "w") as _f: _f.write("{}")
+
+--------------------------------------------------
+>> Issue: [B405:blacklist] Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.
+   Severity: Low   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree
+   Location: .\bot.py:66:0
+65	    _HAS_FCNTL = False
+66	import xml.etree.ElementTree as ET
+67	from datetime import datetime, timezone, timedelta
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:122:0
+121	    logging.getLogger().addHandler(_fh)
+122	except Exception: pass
+123	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:402:8
+401	            self._gate_stats[reason] += 1
+402	        except Exception:
+403	            pass
+404	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:417:8
+416	                            f"{type(exc).__name__}: {exc}")
+417	        except Exception:
+418	            pass
+419	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:425:12
+424	            try: await asyncio.to_thread(self.native_tp.detach, pos)
+425	            except Exception: pass
+426	        if not getattr(self.cfg, "NATIVE_SL_ENABLED", False):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:442:12
+441	                )
+442	            except Exception:
+443	                pass
+444	            return False
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:463:16
+462	                                         self.hyperopt.best_params if self.hyperopt else None)
+463	                except Exception:
+464	                    pass
+465	            else:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:522:12
+521	                    return block("coin_regime", f"{sig.pair} own 5m trend TREND_DOWN")
+522	            except Exception:
+523	                pass
+524	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:639:28
+638	                            try: pos.sl = float(o.get('stopPrice') or sl)
+639	                            except Exception: pass
+640	                            linked = True
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:642:12
+641	                            break
+642	            except Exception:
+643	                pass
+644	            self.risk.positions.append(pos)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:649:12
+648	            try: self.risk.save_state()
+649	            except Exception: pass
+650	            log.warning(f"📥 ADOPTED orphan {sym}: qty={qty} @ ${price:.6f} (${qty*price:.2f}) "
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:657:12
+656	                             f"Bot is now managing this coin (cost basis = current price).")
+657	            except Exception:
+658	                pass
+659	            return pos
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:695:8
+694	                _hb0.write(str(int(time.time())))
+695	        except Exception: pass
+696	        bal_data = await self.ex.get_asset_balance("USDT")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:878:28
+877	                            try: stuck_pairs.add(json.loads(line.strip())["pair"].replace("USDT",""))
+878	                            except Exception: pass
+879	            except Exception: pass
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:879:12
+878	                            except Exception: pass
+879	            except Exception: pass
+880	            for b in (await self.ex.get_account())['balances']:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:983:8
+982	        try: self.risk.native_tp = self.native_tp
+983	        except Exception: pass
+984	        # WebSocket
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1002:16
+1001	                    alt_disabled -= alt_ok  # Re-enable if works on any alt
+1002	                except Exception: pass
+1003	            # v13.5.3 audit Fix #5: union (not assign) so our pre-disabled list survives
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1026:8
+1025	            self.disabled_strats=[s for s in _hard_disabled if s not in _PROTECTED_FROM_BACKTEST]
+1026	        except Exception: pass
+1027	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1043:12
+1042	                    with open(ts_file, "w") as _f: _f.write("ok")  # v15.3 FIX: close file properly
+1043	            except Exception: pass
+1044	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1055:8
+1054	        try: self.token_unlock.update()
+1055	        except Exception: pass
+1056	        try: self.econ_calendar.update()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1057:8
+1056	        try: self.econ_calendar.update()
+1057	        except Exception: pass
+1058	        # v18.9.5: prime Binance delist/halt gate at boot (fail-open)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1061:12
+1060	            try: await asyncio.to_thread(self.binance_announce.update, self.cfg.PAIRS, self.ex.cl)
+1061	            except Exception: pass
+1062	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1065:8
+1064	        try: await asyncio.to_thread(self.dxy.update)
+1065	        except Exception: pass
+1066	        try: await asyncio.to_thread(self.options.update)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1067:8
+1066	        try: await asyncio.to_thread(self.options.update)
+1067	        except Exception: pass
+1068	        # v8.3: Train LSTM
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1073:8
+1072	            if len(past_pnls)>=10: self.monte_carlo.run(past_pnls, self.cfg.TOTAL_CAPITAL)
+1073	        except Exception: pass
+1074	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1091:12
+1090	                    with open(ts_hyper, "w") as _f: _f.write("ok")  # v15.3 FIX: close file properly
+1091	            except Exception: pass
+1092	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1175:40
+1174	                                                if tq > 0: price = tc / tq
+1175	                                        except Exception: pass
+1176	                                        self.risk._record_close(pos, price, reason, _emerg_ctx, self.tg)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1202:24
+1201	                        try: self.native_tp.detach(_p); log.info(f"  Cancelled native TP {_p.pair} #{_tp_oid}")
+1202	                        except Exception: pass
+1203	        except Exception: pass
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1203:8
+1202	                        except Exception: pass
+1203	        except Exception: pass
+1204	        # v15.2: async shutdown — cancel orders, cleanup
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1220:8
+1219	                _hb.write(str(int(time.time())))
+1220	        except Exception: pass
+1221	        if self.cycles % 50 == 0: asyncio.get_event_loop().run_in_executor(None, gc.collect)  # v16.0 AUDIT FIX M4: was gc.collect() blocking hot path — now background thread
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1226:12
+1225	            try: await asyncio.to_thread(self.binance_announce.update, self.cfg.PAIRS, self.ex.cl)
+1226	            except Exception: pass
+1227	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1271:16
+1270	                try: self.tg.send(f"✅ Force-close complete. Positions remaining: {len(self.risk.positions)}")
+1271	                except Exception: pass
+1272	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1282:16
+1281	                try: self.risk.record_equity(_equity)
+1282	                except Exception: pass
+1283	                # v16.0.05: PortfolioKelly auto-enable at PORTFOLIO_KELLY_MIN_TRADES trades.
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1300:20
+1299	                        f"Dynamic regime scaling: TREND×1.0 RANGE×0.5 CHOPPY×0.25")
+1300	                    except Exception: pass
+1301	                _day_pnl = getattr(self.risk, 'daily_pnl', 0)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1339:24
+1338	                            if _cp_px > 0: _total += _cp.qty * _cp_px
+1339	                        except Exception: pass
+1340	                if _total > 5.0 and abs(_total - self.cfg.TOTAL_CAPITAL) > 1.0:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1347:20
+1346	                        self.risk._real_usdt_free = _free_usdt
+1347	                    except Exception: pass
+1348	                    log.info(f"💰 Capital auto-synced: ${self.cfg.TOTAL_CAPITAL:.2f} (free+positions)")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1358:12
+1357	                        log.warning(f"Capital state persist failed: {_e}")
+1358	            except Exception: pass
+1359	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1420:16
+1419	                try: self.tg.send(f"🔌 <b>WS auto-reconnected</b> (attempt #{_rc+1})")
+1420	                except Exception: pass
+1421	            except Exception as _we:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1427:20
+1426	                    try: self.tg.send("🚨 <b>WS unrecoverable — bot restarting via systemd</b>")
+1427	                    except Exception: pass
+1428	                    import sys; sys.exit(1)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1461:28
+1460	                            try: self.tg.send(f"💀 <b>DEAD-MAN SWITCH</b> — price-blind {_blind:.0f}s, action={_act}")
+1461	                            except Exception: pass
+1462	                        if _act == "flatten":
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1510:24
+1509	                                    log.info(f"🔁 CRASH retry succeeded {pos.pair}")
+1510	                        except Exception:
+1511	                            pass
+1512	                    if "error" in r:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1674:20
+1673	                        self._last_dd_alert_at = self.cycles
+1674	                    except Exception: pass
+1675	        else:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1683:16
+1682	                        priority="HIGH")
+1683	                except Exception: pass
+1684	                self._last_dd_alert_at = None
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1722:12
+1721	                threading.Thread(target=_run_intel_async, daemon=True, name="IntelAsync").start()
+1722	            except Exception: pass
+1723	        # v9.2: Log event + stablecoin status
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1734:12
+1733	            try: await asyncio.to_thread(self.whale.update)
+1734	            except Exception: pass
+1735	            try: await asyncio.to_thread(self.multi_ex.analyze, "BTCUSDT")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1736:12
+1735	            try: await asyncio.to_thread(self.multi_ex.analyze, "BTCUSDT")
+1736	            except Exception: pass
+1737	            # v8.4: Refresh new intelligence modules
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1739:12
+1738	            try: await asyncio.to_thread(self.gecko_trending.refresh)
+1739	            except Exception: pass
+1740	            try: await asyncio.to_thread(self.gecko_movers.refresh)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1741:12
+1740	            try: await asyncio.to_thread(self.gecko_movers.refresh)
+1741	            except Exception: pass
+1742	            try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1745:12
+1744	                await asyncio.to_thread(self.exchange_flow.refresh, tickers_24h)
+1745	            except Exception: pass
+1746	            # v11.2.10: Update new intelligence modules
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1803:12
+1802	            try: self.meta_learner.update_weights()
+1803	            except Exception: pass
+1804	            try: self.model_selector.evaluate()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1805:12
+1804	            try: self.model_selector.evaluate()
+1805	            except Exception: pass
+1806	            # v8.4: Social sentiment (slower refresh — 15min)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1810:12
+1809	                await asyncio.to_thread(self.social_sentiment.refresh, coins)
+1810	            except Exception: pass
+1811	            try: await asyncio.to_thread(self.dxy.update)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1812:12
+1811	            try: await asyncio.to_thread(self.dxy.update)
+1812	            except Exception: pass
+1813	            try: await asyncio.to_thread(self.options.update)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1814:12
+1813	            try: await asyncio.to_thread(self.options.update)
+1814	            except Exception: pass
+1815	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:1975:24
+1974	                        try: self.tg.send(f"🔪 STRATEGY KILLED: {s} | WR={wr*100:.1f}% | PnL=${pnl:.4f} | {trades}t | Below 45% WR — disabled")
+1975	                        except Exception: pass
+1976	                # Log full attribution at 50-trade milestone
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2049:28
+2048	                            try: self.tg.send(f"🎯 <b>NATIVE TP FILLED</b> {_ntp_pos.pair}\n💲 ${_ntp_price:.4f}\n✅ Exchange exit — profit secured")
+2049	                            except Exception: pass
+2050	                    except Exception as _ntpe:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2094:36
+2093	                                    try: self.tg.send(f"⚠️ <b>NATIVE SL RE-ATTACH FAILED</b> {_ppos.pair}\nAfter scale-out; software SL is the failsafe — check manually.")
+2094	                                    except Exception: pass
+2095	                            except Exception as _rae:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2108:28
+2107	                            )
+2108	                            except Exception: pass
+2109	                        self.risk.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2118:20
+2117	                    try: await self._restore_native_sl_after_failed_sell(_ppos, reason="SCALE_OUT")
+2118	                    except Exception: pass
+2119	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2171:28
+2170	                                             f"✅ Bot detected native SL fill — no double-sell")
+2171	                            except Exception:
+2172	                                pass
+2173	                            pos.native_sl_order_id = None
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2414:24
+2413	                        try: self.tg.send(_msg)
+2414	                        except Exception: pass
+2415	                except Exception as _tri_scan_e:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2501:12
+2500	                )
+2501	            except Exception: pass
+2502	            log.info(
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2585:20
+2584	                                      f"(existing positions managed normally).")
+2585	                    except Exception: pass
+2586	                    self._exposure_alert_ts = _now
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2594:20
+2593	                    try: self.tg.send(f"✅ <b>EXPOSURE OK</b>: {pct*100:.1f}% crypto — new entries resumed.")
+2594	                    except Exception: pass
+2595	    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2742:16
+2741	                        self.candle_cache[_pos.pair] = _pc5
+2742	                except Exception:
+2743	                    pass
+2744	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2832:20
+2831	                    try: adjustments.append(("dxy", _adj(self.dxy.get_boost(), 0.15)))
+2832	                    except Exception: pass
+2833	                    try: adjustments.append(("options", _adj(self.options.get_boost(), 0.12)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2834:20
+2833	                    try: adjustments.append(("options", _adj(self.options.get_boost(), 0.12)))
+2834	                    except Exception: pass
+2835	                    try: adjustments.append(("multi_ex", _adj(self.multi_ex.get_boost(), 0.12)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2836:20
+2835	                    try: adjustments.append(("multi_ex", _adj(self.multi_ex.get_boost(), 0.12)))
+2836	                    except Exception: pass
+2837	                    try: adjustments.append(("whale", _adj(self.whale.get_boost(), 0.08)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2838:20
+2837	                    try: adjustments.append(("whale", _adj(self.whale.get_boost(), 0.08)))
+2838	                    except Exception: pass
+2839	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2842:20
+2841	                    try: adjustments.append(("ls_ratio", _adj(self.long_short.get_boost(), 0.10)))
+2842	                    except Exception: pass
+2843	                    try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2844:20
+2843	                    try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
+2844	                    except Exception: pass
+2845	                    try: adjustments.append(("ex_flow", _adj(self.exchange_flow.get_boost(sig.pair), 0.06)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2846:20
+2845	                    try: adjustments.append(("ex_flow", _adj(self.exchange_flow.get_boost(sig.pair), 0.06)))
+2846	                    except Exception: pass
+2847	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2850:20
+2849	                    try: adjustments.append(("gecko_t", _adj(self.gecko_trending.get_boost(sig.pair), 0.04)))
+2850	                    except Exception: pass
+2851	                    try: adjustments.append(("gecko_m", _adj(self.gecko_movers.get_boost(sig.pair), 0.04)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2852:20
+2851	                    try: adjustments.append(("gecko_m", _adj(self.gecko_movers.get_boost(sig.pair), 0.04)))
+2852	                    except Exception: pass
+2853	                    try: adjustments.append(("social", _adj(self.social_sentiment.get_boost(sig.pair), 0.03)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2854:20
+2853	                    try: adjustments.append(("social", _adj(self.social_sentiment.get_boost(sig.pair), 0.03)))
+2854	                    except Exception: pass
+2855	                    try: adjustments.append(("nlp", _adj(self.transformer_nlp.get_boost(), 0.03)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2856:20
+2855	                    try: adjustments.append(("nlp", _adj(self.transformer_nlp.get_boost(), 0.03)))
+2856	                    except Exception: pass
+2857	                    try: adjustments.append(("hash", _adj(self.hash_rate.get_boost(), 0.03)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2858:20
+2857	                    try: adjustments.append(("hash", _adj(self.hash_rate.get_boost(), 0.03)))
+2858	                    except Exception: pass
+2859	                    # v12.0: Aggressor flow
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2861:20
+2860	                    try: adjustments.append(("aggflow", _adj(self.aggressor_flow.get_boost(sig.pair), 0.07)))
+2861	                    except Exception: pass
+2862	                    # v12.0: Per-coin profile boost
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2867:20
+2866	                        adjustments.append(("coin_prof", _adj(cp_boost, 0.06)))
+2867	                    except Exception: pass
+2868	                    # v12.2: New intelligence modules
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2870:20
+2869	                    try: adjustments.append(("funding", _adj(self.funding_rate.get_boost(sig.pair), 0.10)))
+2870	                    except Exception: pass
+2871	                    try: adjustments.append(("liq", _adj(self.liquidation.get_boost(), 0.08)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2872:20
+2871	                    try: adjustments.append(("liq", _adj(self.liquidation.get_boost(), 0.08)))
+2872	                    except Exception: pass
+2873	                    # v14.2: Institutional module confidence adjustments
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2875:20
+2874	                    try: adjustments.append(("vol_delta", _adj(self.vol_delta.get_boost(sig.pair), 0.12)))
+2875	                    except Exception: pass
+2876	                    try: adjustments.append(("lob", _adj(self.lob.get_boost(sig.pair), 0.10)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2877:20
+2876	                    try: adjustments.append(("lob", _adj(self.lob.get_boost(sig.pair), 0.10)))
+2877	                    except Exception: pass
+2878	                    try: adjustments.append(("liq_cascade", _adj(self.liq_cascade.get_boost(sig.pair), 0.08)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2879:20
+2878	                    try: adjustments.append(("liq_cascade", _adj(self.liq_cascade.get_boost(sig.pair), 0.08)))
+2879	                    except Exception: pass
+2880	                    # v15.0 Gap #2: spot_perp boost DISABLED — without futures shorts, the
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2885:20
+2884	                    try: adjustments.append(("vpin", _adj(self.vpin.get_boost(sig.pair), 0.10)))
+2885	                    except Exception: pass
+2886	                    try: adjustments.append(("smartcoin", _adj(self.smart_coin.get_boost(sig.pair), 0.04)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2887:20
+2886	                    try: adjustments.append(("smartcoin", _adj(self.smart_coin.get_boost(sig.pair), 0.04)))
+2887	                    except Exception: pass
+2888	                    try: adjustments.append(("cnews", _adj(self.crypto_news.get_boost(sig.pair), 0.05)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2889:20
+2888	                    try: adjustments.append(("cnews", _adj(self.crypto_news.get_boost(sig.pair), 0.05)))
+2889	                    except Exception: pass
+2890	                    
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2902:20
+2901	                                adjustments.append(("openai", _adj(oai_boost, 0.15)))
+2902	                    except Exception: pass
+2903	                    try: adjustments.append(("momentum", _adj(self.momentum.get_boost(sig.pair), 0.06)))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2904:20
+2903	                    try: adjustments.append(("momentum", _adj(self.momentum.get_boost(sig.pair), 0.06)))
+2904	                    except Exception: pass
+2905	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2911:20
+2910	                        adjustments.append(("rl", _adj(rl_b, 0.08)))
+2911	                    except Exception: pass
+2912	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2923:20
+2922	                            adjustments.append(("lstm", lstm_adj))
+2923	                    except Exception: pass
+2924	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2930:20
+2929	                            adjustments.append(("unlock", _adj(unlock_boost, 0.12)))
+2930	                    except Exception: pass
+2931	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2936:16
+2935	                    sig.conf = round(max(0, min(1.0, base_conf + total_adj)), 2)
+2936	                except Exception: pass
+2937	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2972:16
+2971	                        continue
+2972	                except Exception:
+2973	                    pass  # fail-open: a ticker hiccup must not block trading
+2974	            # v13.2: Attach MTF alignment for position sizing in risk.py
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:2988:12
+2987	                size = max(self.cfg.MIN_TRADE, round(size, 2))
+2988	            except Exception: pass
+2989	            # v9.4: Grade gate — only A+ and A trades allowed
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3011:12
+3010	                    log.info(f"ℹ️ {sig.pair} LOW_VOL — ATR {atr_pct:.2f}% < {_gate_full:.2f}% (group {_grp}, full size kept)")
+3011	            except Exception: pass
+3012	            _mtf = getattr(ctx, "mtf_align", 50)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3051:16
+3050	                        sig.conf = round(min(1.0, sig.conf + 0.05), 2)
+3051	                except Exception: pass
+3052	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3068:12
+3067	                    log.info(f"💸 {sig.pair} funding {fr:.4f} BEARISH reduce → conf {sig.conf}")
+3068	            except Exception: pass
+3069	            # Re-check after adjustments. v18.9.9 (audit H3): also require the PRE-nudge
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\bot.py:3100:31
+3099	                # v16.0 AUDIT FIX L5: `import random as _rnd` moved to module level
+3100	                _jitter = 1 + (random.random() - 0.5) * 0.10  # 0.95-1.05
+3101	                _size_jit = size * _jitter
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\bot.py:3137:33
+3136	                # v16.0 AUDIT FIX L5: `import random as _rnd` moved to module level
+3137	                _jitter_m = 1 + (random.random() - 0.5) * 0.10
+3138	                _final_size = size * _jitter_m
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3233:8
+3232	                return self._build_filled_result(sym, order_id, o)
+3233	        except Exception:
+3234	            pass
+3235	        return None
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3294:8
+3293	            self._lock_file.close()
+3294	        except Exception: pass
+3295	        # v15.2: Signal handler must be sync. Just set flag — async cleanup
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3320:8
+3319	                    log.info(f"Cancelled open order {p['s']} #{oid} ({otype})")
+3320	        except Exception: pass
+3321	        self.risk.save_state(self.grid.pnl,self.grid.trades,
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\bot.py:3343:8
+3342	        try: self.tg.close()
+3343	        except Exception: pass
+3344	        self.running=False
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\capital_activator.py:240:12
+239	                self.exposure_guard.warn_pct = exp * 0.85
+240	            except Exception:
+241	                pass
+242	        prev = self._tier
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\capital_activator.py:260:12
+259	                        f"💲 Per-trade size: <b>{psz*100:.0f}%</b> | exposure {exp*100:.0f}%")
+260	            except Exception:
+261	                pass
+262	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\coin_profile.py:175:16
+174	                try: os.fsync(f.fileno())
+175	                except Exception: pass
+176	            os.replace(tmp, self._save_path)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\coin_profile.py:182:12
+181	            try: os.unlink(tmp)
+182	            except Exception: pass
+183	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\config.py:493:8
+492	                        object.__setattr__(self, "RISK_PCT", _risk_f)
+493	        except Exception:
+494	            pass
+495	        self.API_KEY = os.getenv("BINANCE_API_KEY", "")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange.py:98:12
+97	                pass  # no running loop (called from a plain thread) — re-syncs at next init
+98	            except Exception:
+99	                pass
+100	        params['timestamp'] = int(time.time() * 1000) + self._time_offset
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\exchange.py:311:12
+310	                valid.append(c)
+311	            except Exception:
+312	                continue
+313	        if len(valid) < len(candles):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange.py:342:12
+341	                    _fo.report_binance_ok()
+342	            except Exception:
+343	                pass
+344	            _cs = [Candle(k[0]/1000, float(k[1]), float(k[2]),
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange.py:589:8
+588	                    return await self.buy(sym, qty)
+589	        except Exception:
+590	            pass
+591	        chunk_qty = qty / n_chunks
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange.py:733:8
+732	                return {item["symbol"].upper(): {"b": float(item.get("bidPrice", 0)), "B": float(item.get("bidQty", 0)), "a": float(item.get("askPrice", 0)), "A": float(item.get("askQty", 0))} for item in data}
+733	        except Exception: pass
+734	        return {}
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange.py:853:12
+852	                    self.on_book_ticker(sym, b, B, a, A)
+853	            except Exception: pass
+854	            return
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange_failover.py:109:24
+108	                        try: self.tg.send("✅ <b>Failover Disengaged</b>\nBinance API recovered, primary route restored")
+109	                        except Exception: pass
+110	                self._error_count = 0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange_failover.py:140:20
+139	                        )
+140	                    except Exception: pass
+141	            return self._failover_active
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\exchange_native_sl.py:241:16
+240	                    tg.send(f"🛑 <b>Native SL Reconciler</b>\nCancelled {orphan_count} orphan stop-loss order(s)")
+241	                except Exception:
+242	                    pass
+243	            return orphan_count
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\execution_algo.py:77:24
+76	            if i < n_chunks - 1:
+77	                delay = random.uniform(5, 15)
+78	                await asyncio.sleep(delay)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\feature_flags.py:41:4
+40	        _cache = dict(DEFAULTS)
+41	    except Exception:
+42	        pass   # keep old cache on parse error
+43	    _cache_ts = time.time()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:53:12
+52	                return [float(x) if not np.isnan(x) else v[i] for i, x in enumerate(res)]
+53	            except Exception: pass
+54	        e = [sum(v[:p])/p]; m = 2/(p+1)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:67:12
+66	                return float(v[-1]) if len(v) > 0 else 50.0
+67	            except Exception: pass
+68	        c = [x.c for x in candles]; g = []; l = []
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:82:12
+81	                return [float(x) for x in res if not np.isnan(x)]
+82	            except Exception: pass
+83	        # v14.6.5 AUDIT FIX (F35): previous pure-Python path was O(N²) — it called
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:127:12
+126	                return ml, sl, hist
+127	            except Exception: pass
+128	        ef = TA.ema(c,f); es = TA.ema(c,s); d = len(ef)-len(es)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:151:12
+150	                return u, m, l, bw
+151	            except Exception: pass
+152	        s = sum(c[-p:])/p; v = sum((x-s)**2 for x in c[-p:])/p; d = v**0.5
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:165:12
+164	                return float(v[-1]) if len(v) > 0 else candles[-1].c * 0.005
+165	            except Exception: pass
+166	        tr = [max(candles[i].h-candles[i].l,
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:182:12
+181	                return float(v[-1]) if len(v) > 0 else 25.0
+182	            except Exception: pass
+183	        pd, md, tr = [], [], []
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:214:12
+213	                return (float(sk_v[-1]), float(sd_v[-1])) if len(sk_v) > 0 else (50.0, 50.0)
+214	            except Exception: pass
+215	        return 50.0, 50.0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:227:12
+226	                return float(v[-1]) if len(v) > 0 else 0.0
+227	            except Exception: pass
+228	        return 0.0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:240:12
+239	                return float(v[-1]) if len(v) > 0 else 50.0
+240	            except Exception: pass
+241	        return 50.0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:252:12
+251	                return float(res[-1]) if not np.isnan(res[-1]) else 0.0
+252	            except Exception: pass
+253	        return 0.0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:294:12
+293	                return "NONE", 0.0
+294	            except Exception: pass
+295	        # Pure Python fallback
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\indicators.py:497:0
+496	    _fast_vwap_math(np.zeros(10), np.zeros(10), np.zeros(10), np.zeros(10))
+497	except Exception:
+498	    pass
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:39:19
+38	            r = urllib.request.Request(url, headers={"User-Agent": "BinBot/12"})
+39	            resp = urllib.request.urlopen(r, timeout=10)
+40	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:123:19
+122	            r = urllib.request.Request(url, headers={"User-Agent": "BinBot/12"})
+123	            resp = urllib.request.urlopen(r, timeout=8)
+124	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:215:19
+214	            r = urllib.request.Request(url, headers={"User-Agent": "BinBot/12"})
+215	            resp = urllib.request.urlopen(r, timeout=15)
+216	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:353:21
+352	                })
+353	                with urllib.request.urlopen(req, timeout=8) as resp:
+354	                    root = ET.fromstring(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\intelligence.py:359:12
+358	                            all_headlines.append(title.text)
+359	            except Exception:
+360	                continue
+361	        if not all_headlines:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:466:8
+465	                        out.append(t)
+466	        except Exception:
+467	            pass
+468	        return out
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:503:12
+502	                self._halted = {b for b in halted if b}
+503	            except Exception:
+504	                pass  # fail-open: keep previous
+505	
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:509:17
+508	            req = urllib.request.Request(self._ANN_URL, headers=self._UA)
+509	            with urllib.request.urlopen(req, timeout=8) as resp:
+510	                data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\intelligence.py:582:16
+581	                    }
+582	                except Exception:
+583	                    continue
+584	            # Rank by relative strength
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:647:19
+646	            req = urllib.request.Request(url, headers={"User-Agent": "BinBot/14"})
+647	            resp = urllib.request.urlopen(req, timeout=8)
+648	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:770:23
+769	                req = urllib.request.Request(url_f, headers={"User-Agent": "BinBot/14"})
+770	                resp = urllib.request.urlopen(req, timeout=5)
+771	                fdata = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:905:23
+904	                             "Content-Type": "application/json"})
+905	                resp = _u.urlopen(req, timeout=5)
+906	                result = _j.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:972:19
+971	            req = urllib.request.Request(url, headers={"User-Agent": "BinBot/14"})
+972	            resp = urllib.request.urlopen(req, timeout=5)
+973	            trades = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\intelligence.py:1192:16
+1191	                        }
+1192	                except Exception:
+1193	                    continue
+1194	            self._ts = time.time()
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\intelligence.py:1273:16
+1272	                        self._next_event_time = event_time
+1273	                except Exception:
+1274	                    continue
+1275	            self._next_event = closest_event
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:1331:12
+1330	            try: tracker.update()
+1331	            except Exception: pass
+1332	        
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:1336:8
+1335	                self.momentum.update(symbols=["ETHUSDT", "SOLUSDT", "BNBUSDT"], exchange=self.ex)
+1336	        except Exception: pass
+1337	
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\intelligence.py:1345:19
+1344	            req = urllib.request.Request("https://api.alternative.me/fng/?limit=1", headers={"User-Agent": "Mozilla/5.0"})
+1345	            resp = urllib.request.urlopen(req, timeout=3)
+1346	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:1417:12
+1416	                ctx.daily = _trend_label(_sync_klines("BTCUSDT", "1d", 60))
+1417	            except Exception: pass
+1418	            try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:1420:12
+1419	                ctx.h4 = _trend_label(_sync_klines("BTCUSDT", "4h", 60))
+1420	            except Exception: pass
+1421	            try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\intelligence.py:1423:12
+1422	                ctx.h1 = _trend_label(_sync_klines("BTCUSDT", "1h", 60))
+1423	            except Exception: pass
+1424	        # Fallback: momentum-only regime when TA / exchange unavailable
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\lob_imbalance.py:54:19
+53	            req = urllib.request.Request(url, headers={"User-Agent": "BinBot/14"})
+54	            resp = urllib.request.urlopen(req, timeout=5)
+55	            book = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\lob_imbalance.py:110:0
+109	    _fast_obi_math(np.zeros(10), np.zeros(10), 10)
+110	except Exception:
+111	    pass
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:86:17
+85	            req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+86	            resp=urllib.request.urlopen(req,timeout=10)
+87	            data=json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:128:17
+127	            req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+128	            resp=urllib.request.urlopen(req,timeout=15)
+129	            data=json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:183:17
+182	            req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+183	            resp=urllib.request.urlopen(req,timeout=10)
+184	            bn=json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:194:17
+193	            req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+194	            resp=urllib.request.urlopen(req,timeout=10)
+195	            bb=json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:207:17
+206	            req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+207	            resp=urllib.request.urlopen(req,timeout=10)
+208	            ox=json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:249:17
+248	            req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+249	            resp=urllib.request.urlopen(req,timeout=15)
+250	            data=json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:439:19
+438	            req = urllib.request.Request(url, headers={"Accept":"application/json","User-Agent":"BinBot/1.0"})
+439	            resp = urllib.request.urlopen(req, timeout=8)
+440	            data = json.loads(resp.read().decode('utf-8'))
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:487:19
+486	            req = urllib.request.Request(url, headers={"Accept":"application/json","User-Agent":"BinBot/1.0"})
+487	            resp = urllib.request.urlopen(req, timeout=10)
+488	            data = json.loads(resp.read().decode('utf-8'))
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:557:23
+556	                req = urllib.request.Request(url, headers={"User-Agent":"BinBot/1.0"})
+557	                resp = urllib.request.urlopen(req, timeout=5)
+558	                data = json.loads(resp.read().decode('utf-8'))
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:689:19
+688	            r = urllib.request.Request(url, headers={"User-Agent": "BinBot/11"})
+689	            resp = urllib.request.urlopen(r, timeout=8)
+690	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:760:19
+759	            r = urllib.request.Request(url, headers={"User-Agent": "BinBot/11"})
+760	            resp = urllib.request.urlopen(r, timeout=8)
+761	            data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\ml.py:839:19
+838	            r = urllib.request.Request(url, headers={"User-Agent": "BinBot/11"})
+839	            resp = urllib.request.urlopen(r, timeout=10)
+840	            raw = resp.read().decode().strip()
+
+--------------------------------------------------
+>> Issue: [B403:blacklist] Consider possible security implications associated with pickle module.
+   Severity: Low   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b403-import-pickle
+   Location: .\ml.py:1182:12
+1181	        try:
+1182	            import pickle
+1183	            # v13.5.3 audit Bug #30: anchor ml_models.pkl path to this module's
+
+--------------------------------------------------
+>> Issue: [B301:blacklist] Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.
+   Severity: Medium   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b301-pickle
+   Location: .\ml.py:1191:28
+1190	                with open(_ml_path, "rb") as f:
+1191	                    saved = pickle.load(f)
+1192	                self.model = saved["rf"]; self._gb = saved["gb"]
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1257:12
+1256	                # else 1.0 base weight
+1257	            except Exception:
+1258	                pass
+1259	        return weights
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1325:20
+1324	                            gmadl_w[k] = 1.5
+1325	                    except Exception:
+1326	                        pass
+1327	                sample_weights = base_weights * gmadl_w
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1518:24
+1517	                            log.warning(f"🔻 {name.upper()} auto-demoted (mean acc {np.mean(accs):.1%} > 85%, likely overfit)")
+1518	                        except Exception: pass
+1519	            self.last_train=time.time(); self._ready=True
+
+--------------------------------------------------
+>> Issue: [B403:blacklist] Consider possible security implications associated with pickle module.
+   Severity: Low   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b403-import-pickle
+   Location: .\ml.py:1541:16
+1540	            try:
+1541	                import pickle
+1542	                from datetime import datetime
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1568:20
+1567	                    try: os.remove(fp)
+1568	                    except Exception: pass
+1569	                log.info(f"💾 Models saved: ml_models.pkl + ml_models_{ts}.pkl")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1699:16
+1698	                try: f_arr = self._scaler.transform(f_arr)
+1699	                except Exception: pass
+1700	            # v12.1: Apply PCA transform if available
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1703:16
+1702	                try: f_arr = self._pca.transform(f_arr)
+1703	                except Exception: pass
+1704	            rf_p = self.model.predict_proba(f_arr)[0]
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1798:12
+1797	                return 1.05                 # NORMAL BUY
+1798	            except Exception: pass
+1799	        # Q-table fallback
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\ml.py:1862:8
+1861	                self._pos_states[pair] = state
+1862	        except Exception:
+1863	            pass
+1864	    def _save(self):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:98:8
+97	            else: self.signal = "NEUTRAL"
+98	        except Exception: pass
+99	        self.last_check = time.time()  # v11.2.20 FIX: moved outside try — DDoS loop fix
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:137:8
+136	            self.last_check = time.time()
+137	        except Exception: pass
+138	        return self.signal
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:168:8
+167	                    self.tvl_data[coin] = new_tvl
+168	        except Exception: pass
+169	        self.last_check = time.time()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:204:16
+203	                        self.signals[sym] = "NEUTRAL"
+204	                except Exception: pass
+205	                time.sleep(0.2)  # Rate limit
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:206:8
+205	                time.sleep(0.2)  # Rate limit
+206	        except Exception: pass
+207	        self.last_check = time.time()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:239:16
+238	                            self.signals[sym] = "OI_NORMAL"
+239	                except Exception: pass
+240	                time.sleep(0.3)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:241:8
+240	                time.sleep(0.3)
+241	        except Exception: pass
+242	        self.last_check = time.time()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:286:8
+285	                                f"(last entry {last_unlock}) — refresh soon")
+286	        except Exception: pass
+287	    def days_to_unlock(self, coin):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:366:8
+365	                    self.trade_history = data.get("trades", [])
+366	        except Exception:
+367	            pass  # First run or corrupted file - start fresh
+368	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:375:8
+374	                json.dump({"trades": self.trade_history[-200:]}, _f)  # cap at 200
+375	        except Exception:
+376	            pass
+377	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\monitors.py:416:8
+415	                return
+416	        except Exception: pass
+417	        """Find best RSI/BB parameters by simulating on recent data."""
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\monitors.py:493:30
+492	                for _ in range(50):  # 50 random combinations
+493	                    rsi_buy = random.randint(25, 42)
+494	                    rsi_sell = random.randint(58, 78)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\monitors.py:494:31
+493	                    rsi_buy = random.randint(25, 42)
+494	                    rsi_sell = random.randint(58, 78)
+495	                    bb_sd = round(random.uniform(1.5, 2.8), 1)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: .\monitors.py:495:34
+494	                    rsi_sell = random.randint(58, 78)
+495	                    bb_sd = round(random.uniform(1.5, 2.8), 1)
+496	                    pnl = -objective([rsi_buy, rsi_sell, bb_sd])
+
+--------------------------------------------------
+>> Issue: [B405:blacklist] Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.
+   Severity: Low   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree
+   Location: .\news.py:2:0
+1	# BinBot v11 — news.py
+2	import urllib.request, xml.etree.ElementTree as ET, time, logging
+3	log = logging.getLogger('binbot')
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\news.py:30:17
+29	            req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"})
+30	            with urllib.request.urlopen(req, timeout=8) as resp:
+31	                root = ET.fromstring(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B314:blacklist] Using xml.etree.ElementTree.fromstring to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.fromstring with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree
+   Location: .\news.py:31:23
+30	            with urllib.request.urlopen(req, timeout=8) as resp:
+31	                root = ET.fromstring(resp.read().decode())
+32	                items = root.findall('.//item')
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\orderflow.py:38:23
+37	                r = urllib.request.Request(url, headers={"User-Agent": "BinBot/12"})
+38	                resp = urllib.request.urlopen(r, timeout=8)
+39	                trades = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\orderflow.py:160:19
+159	            req = urllib.request.Request(url, headers={"User-Agent": "BinBot/14"})
+160	            resp = urllib.request.urlopen(req, timeout=5)
+161	            trades = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\portfolio_alloc.py:50:16
+49	                try: out.append(json.loads(line))
+50	                except Exception: pass
+51	    except Exception: pass
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\portfolio_alloc.py:51:4
+50	                except Exception: pass
+51	    except Exception: pass
+52	    return out
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\portfolio_alloc.py:86:12
+85	                if tstamp < cutoff: continue
+86	            except Exception: continue
+87	            s = t.get("strategy", "?")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\prom_metrics.py:109:12
+108	                self._server.server_close()
+109	            except Exception:
+110	                pass
+111	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:62:16
+61	                            f"Failed {self._consecutive_failures}x — check API connectivity")
+62	                except Exception:
+63	                    pass
+64	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:138:20
+137	                            })
+138	                    except Exception:
+139	                        pass  # Can't price it — skip
+140	            except Exception:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:140:12
+139	                        pass  # Can't price it — skip
+140	            except Exception:
+141	                pass  # Balance fetch failed — skip
+142	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:192:20
+191	                                f"📝 Journal entries written (PnL=0, booked at entry)")
+192	                    except Exception: pass
+193	            except Exception as _ge:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:200:16
+199	                            f"⚠️ Manual review required")
+200	                except Exception: pass
+201	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:213:12
+212	                        f"{drift_msg}")
+213	            except Exception:
+214	                pass
+215	
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: .\reconciler.py:253:16
+252	                # trade history is complete (was: silent sell with no audit trail).
+253	                import os, json, subprocess
+254	                from datetime import datetime, timezone as _tz2
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:289:24
+288	                                     f"🛡️ Drawdown Shield preserved (no reset).")
+289	                        except Exception: pass
+290	                except Exception as e:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\reconciler.py:303:16
+302	                            f"<i>Next alert for same asset in 30min unless value changes ±25%</i>")
+303	                except Exception:
+304	                    pass
+305	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\regime_backtest.py:105:16
+104	                        stats[name][regime]["wins"] += 1
+105	                except Exception:
+106	                    pass
+107	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:36:8
+35	                    self._equity_samples = _j.load(_ef).get('samples', [])
+36	        except Exception: pass
+37	        self._saved_dd_peak = 0  # v11.2.8: holds restored DrawdownShield.peak; bot.py reads this to wire into ddshield
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:160:8
+159	            with open(_ecf, 'w') as _f: _j.dump({'samples': self._equity_samples}, _f)
+160	        except Exception as _e:
+161	            pass
+162	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:387:32
+386	                                try: _trades.append(_jj.loads(_ln))
+387	                                except Exception: pass
+388	                    except Exception as _ee:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:396:12
+395	                    return False, 'GroupD_DailyLoss', 0
+396	            except Exception: pass
+397	        # v14.6.2: Group D max 1 position
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:530:16
+529	                try: self.tg.send(f"📉 <b>EQUITY CURVE</b> — sizing reduced ×{_eq_mult}\nEquity below {len(self._equity_samples[-10:])}d MA")
+530	                except Exception: pass
+531	            size *= _eq_mult
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:575:8
+574	                size *= 0.8  # Mild disagreement → 20% reduction
+575	        except Exception: pass
+576	        if size<self.cfg.MIN_TRADE: return False,"Small",0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:682:24
+681	                                    f"R:R preserved. Review slip_telemetry.jsonl.")
+682	                        except Exception: pass
+683	                    elif abs(slip_pct) > 5.0:  # v11.2.22 FIX: was 0.05% (5bps) — spammed log for every normal spread
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:745:28
+744	                                              f"⚠️ Manual review required")
+745	                            except Exception: pass
+746	                        return
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:752:20
+751	                    try: self.tg.send(f"⚠️ <b>NATIVE SL ERROR</b> {_pos.pair}: {_e}")
+752	                    except Exception: pass
+753	        async def _safe_tp_attach(_pos):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:772:12
+771	                                   order_type=("LIMIT_MAKER" if self.cfg.USE_LIMIT else "MARKET"))
+772	            except Exception: pass
+773	        # v15.2 #2 FIX: audit log entry decision (hash-chained, tamper-evident)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:780:12
+779	                            qty=pos.qty, size_usd=pos.size)
+780	            except Exception: pass
+781	        self.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:869:16
+868	                            log.debug(f"📈 {pos.pair} candle high ${_c_high:.4f} used for BE check (WS had ${price:.4f})")
+869	                except Exception: pass
+870	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:977:32
+976	                                    )
+977	                                except Exception:
+978	                                    pass
+979	                            to_close.append((pos, price, "VELOCITY_EXIT"))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1012:32
+1011	                                )
+1012	                                except Exception: pass
+1013	                except Exception as _pse:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1043:28
+1042	                                )
+1043	                            except Exception:
+1044	                                pass
+1045	                        to_close.append((pos, price, "TIME_EXIT"))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1142:36
+1141	                                    try: self.tg.send(f"🔒 <b>{_label_full}</b> {pos.pair}\nSL ${old_sl:.4f} → ${pos.sl:.4f}")
+1142	                                    except Exception: pass
+1143	                                if getattr(self, 'native_sl', None):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1163:44
+1162	                                            try: self.tg.send(f"⚠️ NATIVE SL {label} MOVE FAILED {pos.pair} ({_retries} retries)")
+1163	                                            except Exception: pass
+1164	                                self.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1208:28
+1207	                            try: self.tg.send(f"🎯 <b>TP REACHED — CHASE</b> {pos.pair}\n💲 Hit TP ${pos.tp:.4f}\n🔒 SL = TP exactly\n🚀 Letting it run")
+1208	                            except Exception: pass
+1209	                        if getattr(self, "native_tp", None):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1211:28
+1210	                            try: await asyncio.to_thread(self.native_tp.detach, pos)
+1211	                            except Exception: pass
+1212	                        if getattr(self, 'native_sl', None):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1217:36
+1216	                                    try: self.tg.send(f"⚠️ NATIVE SL TP-FLOOR MOVE FAILED {pos.pair}")
+1217	                                    except Exception: pass
+1218	                            except Exception as _e:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1247:28
+1246	                            try: self.tg.send(f"📈 <b>CHASE</b> {pos.pair}\nPeak ${high_price:.4f}\nSL ${old_sl:.4f} → ${pos.sl:.4f}")
+1247	                            except Exception: pass
+1248	                        if getattr(self, 'native_sl', None):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1253:36
+1252	                                    try: self.tg.send(f"⚠️ NATIVE SL CHASE MOVE FAILED {pos.pair}")
+1253	                                    except Exception: pass
+1254	                            except Exception as _e:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1282:28
+1281	                                             f"⚠️ Exchange-side failsafe NOT in place — review")
+1282	                            except Exception:
+1283	                                pass
+1284	                        self.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1301:28
+1300	                            try: self.tg.send(f"⚠️ NATIVE SL +2% MOVE FAILED {pos.pair} | SL ${pos.sl:.4f} | Exchange failsafe gone")
+1301	                            except Exception: pass
+1302	                        self.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1313:28
+1312	                            try: self.tg.send(f"⚠️ NATIVE SL +3.5% MOVE FAILED {pos.pair} | SL ${pos.sl:.4f} | Exchange failsafe gone")
+1313	                            except Exception: pass
+1314	                        self.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1332:36
+1331	                                    try: self.tg.send(f"⚠️ NATIVE SL 75% LOCK MOVE FAILED {pos.pair} | SL ${pos.sl:.4f} | Exchange failsafe gone")
+1332	                                    except Exception: pass
+1333	                                self.save_state()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1354:32
+1353	                                try: self.tg.send(f"🔐 {_label} {pos.pair} | SL locked at ${pos.sl:.6f}")
+1354	                                except Exception: pass
+1355	                            if getattr(self, 'native_sl', None):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1360:40
+1359	                                        try: self.tg.send(f"⚠️ {_label} native SL move failed {pos.pair}")
+1360	                                        except Exception: pass
+1361	                                except Exception as _e:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1376:20
+1375	                    try: await asyncio.to_thread(self.native_tp.detach, pos)
+1376	                    except Exception: pass
+1377	                
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1385:16
+1384	                    elif 'tg' in globals(): tg.send(_msg)
+1385	                except Exception: pass
+1386	                
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1419:16
+1418	                    if hasattr(self, 'native_sl'): await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
+1419	                except Exception: pass
+1420	                _last_alert = getattr(pos, '_last_tg_sl', 0)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1428:20
+1427	                        elif 'tg' in globals(): tg.send(_msg)
+1428	                    except Exception: pass
+1429	                self.save_state()  # v15.6 FIX: moved inside if-block — was saving every cycle
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1443:24
+1442	                        try: await asyncio.to_thread(self.native_tp.detach, pos)
+1443	                        except Exception: pass
+1444	                    to_close.append((pos, price, "TRAIL")); continue
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\risk.py:1454:12
+1453	                entry=datetime.fromisoformat(pos.entry_time)
+1454	            except Exception:
+1455	                continue  # Skip time check if entry_time is malformed
+1456	            mins=(datetime.now(timezone.utc)-entry).total_seconds()/60
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1565:16
+1564	                                      high_seen=getattr(pos, "high", price))
+1565	                except Exception: pass
+1566	            # v15.2 #2 FIX: audit log exit decision
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1573:16
+1572	                                tp_floor=getattr(pos, "tp_floor_locked", False))
+1573	                except Exception: pass
+1574	            # v11.2.8 FIX (May 4, 2026): guard fromisoformat against malformed entry_time.
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1629:12
+1628	                })
+1629	            except Exception: pass
+1630	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1656:12
+1655	            try: self.journal.history.append(entry)
+1656	            except Exception: pass
+1657	        # v9.0 FIX: Append-only JSONL — no corruption risk, no full file rewrite
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\risk.py:1720:16
+1719	                        had_recent = True; break
+1720	                except Exception: pass
+1721	            if not had_recent:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\state.py:100:20
+99	                        os.fsync(f.fileno())  # durability — flush kernel buffers to disk
+100	                    except Exception:
+101	                        pass  # fsync unsupported on some FS/platforms — best effort
+102	                os.replace(tmp, self.path)  # Atomic on Linux + Windows
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\state.py:108:12
+107	                    os.remove(tmp)  # v18.5: don't leak temp files on failure
+108	            except Exception:
+109	                pass
+110	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\tca.py:41:4
+40	            path.replace(bak)
+41	    except Exception:
+42	        pass
+43	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\tca.py:161:24
+160	                                events.append(e)
+161	                        except Exception:
+162	                            pass
+163	        except Exception:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\tca.py:163:8
+162	                            pass
+163	        except Exception:
+164	            pass
+165	
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\telegram.py:46:16
+45	                                              headers={"Content-Type": "application/json"})
+46	                urllib.request.urlopen(req, timeout=5)
+47	                return
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\telegram.py:70:12
+69	                    self._dedup = {k: v for k, v in self._dedup.items() if _now - v < _win}
+70	            except Exception:
+71	                pass
+72	        try:
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\telegram.py:101:12
+100	                headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+101	            urllib.request.urlopen(req, timeout=15)  # photos need longer timeout
+102	        except Exception as _e:
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\telegram.py:320:12
+319	                                         headers={"Content-Type": "application/json"})
+320	            urllib.request.urlopen(req, timeout=5)
+321	            log.info("📋 Telegram command menu registered (Menu button)")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\telegram_charts.py:163:8
+162	            _plt.close('all')  # cleanup on error
+163	        except Exception:
+164	            pass
+165	        return None
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\telegram_commands.py:78:17
+77	        try:
+78	            with urllib.request.urlopen(req, timeout=self.POLL_TIMEOUT_SEC + 10) as resp:
+79	                data = json.loads(resp.read().decode())
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\telegram_commands.py:180:16
+179	                        live_px[p.pair] = float(px)
+180	                except Exception:
+181	                    pass
+182	            lines = [f"📦 <b>Positions ({len(positions)})</b>"]
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\telegram_commands.py:215:8
+214	                audit.log("BOT_PAUSE", source="telegram_command")
+215	        except Exception:
+216	            pass
+217	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\telegram_commands.py:229:8
+228	                audit.log("BOT_RESUME", source="telegram_command")
+229	        except Exception:
+230	            pass
+231	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\telegram_commands.py:291:8
+290	                          positions=[p.pair for p in bot.risk.positions])
+291	        except Exception:
+292	            pass
+293	        # Set a flag that the cycle loop reads to do the actual closing
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\v15_report.py:41:12
+40	                t = json.loads(line)
+41	            except Exception:
+42	                continue
+43	            if t.get("action") not in CLOSE_ACTIONS:
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\v15_report.py:48:12
+47	                tstamp = datetime.fromisoformat(ts).timestamp()
+48	            except Exception:
+49	                continue
+50	            if tstamp < cutoff:
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: .\watchdog.py:23:0
+22	"""
+23	import os, time, subprocess, urllib.request, urllib.parse
+24	from pathlib import Path
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\watchdog.py:43:4
+42	                os.environ.setdefault(k, v.strip().strip('"').strip("'"))
+43	    except Exception:
+44	        pass
+45	
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: .\watchdog.py:53:8
+52	        data = urllib.parse.urlencode({"chat_id": chat, "text": msg, "parse_mode": "HTML"}).encode()
+53	        urllib.request.urlopen(f"https://api.telegram.org/bot{tok}/sendMessage", data=data, timeout=10)
+54	    except Exception:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\watchdog.py:54:4
+53	        urllib.request.urlopen(f"https://api.telegram.org/bot{tok}/sendMessage", data=data, timeout=10)
+54	    except Exception:
+55	        pass
+56	
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: .\watchdog.py:61:15
+60	        try:
+61	            if subprocess.run(cmd, timeout=30, check=False).returncode == 0:
+62	                return True
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: .\watchdog.py:63:8
+62	                return True
+63	        except Exception:
+64	            continue
+65	    print(f"systemctl {action} {SERVICE} failed")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\watchdog.py:118:12
+117	                    since_restart = time.time() - float(RESTART_STATE.read_text().strip() or 0)
+118	            except Exception:
+119	                pass
+120	            if stale > STALE_SEC and since_restart > GRACE_SEC:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\watchdog.py:123:16
+122	                try: RESTART_STATE.write_text(str(int(time.time())))
+123	                except Exception: pass
+124	                _systemctl("restart")
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: .\web_dashboard.py:67:12
+66	                self._send_simple(500, "Internal Server Error\n", "text/plain")
+67	            except Exception:
+68	                pass
+69	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 14992
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 253
+		Medium: 33
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 286
+Files skipped (0):

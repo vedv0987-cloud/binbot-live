@@ -64,8 +64,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             log.warning(f"Dashboard request error: {e}")
             try:
                 self._send_simple(500, "Internal Server Error\n", "text/plain")
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     # ── Senders ───────────────────────────────────────────────────────────────
 

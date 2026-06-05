@@ -172,14 +172,14 @@ class CoinProfileManager:
                 json.dump(data, f, indent=2)
                 f.flush()
                 try: os.fsync(f.fileno())
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             os.replace(tmp, self._save_path)
             self._last_save = time.time()
         except Exception as e:
             log.debug(f"CoinProfile save: {e}")
             # cleanup tmp if rename failed
             try: os.unlink(tmp)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def _load(self):
         try:

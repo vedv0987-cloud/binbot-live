@@ -177,8 +177,7 @@ class TelegramCommandHandler:
                     px = ws_prices.get(p.pair) or getattr(bot, '_last_prices', {}).get(p.pair)
                     if px:
                         live_px[p.pair] = float(px)
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             lines = [f"📦 <b>Positions ({len(positions)})</b>"]
             for p in positions:
                 px = live_px.get(p.pair, p.entry)
@@ -212,8 +211,7 @@ class TelegramCommandHandler:
             audit = getattr(self.bot, '_audit', None)
             if audit:
                 audit.log("BOT_PAUSE", source="telegram_command")
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def _cmd_resume(self):
         if not getattr(self.bot, 'paused', False):
@@ -226,8 +224,7 @@ class TelegramCommandHandler:
             audit = getattr(self.bot, '_audit', None)
             if audit:
                 audit.log("BOT_RESUME", source="telegram_command")
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def _cmd_force_close_prepare(self):
         bot = self.bot
@@ -288,8 +285,7 @@ class TelegramCommandHandler:
             if audit:
                 audit.log("FORCE_CLOSE_ALL", source="telegram_command",
                           positions=[p.pair for p in bot.risk.positions])
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # Set a flag that the cycle loop reads to do the actual closing
         # (closing inside this thread would race with the trading loop)
         bot._force_close_all_requested = True

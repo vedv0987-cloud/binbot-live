@@ -38,8 +38,7 @@ def _load_disk() -> dict:
         _cache = {**DEFAULTS, **d}
     except FileNotFoundError:
         _cache = dict(DEFAULTS)
-    except Exception:
-        pass   # keep old cache on parse error
+    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")   # keep old cache on parse error
     _cache_ts = time.time()
     return _cache
 

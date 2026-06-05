@@ -238,8 +238,7 @@ class NativeSLManager:
             if orphan_count > 0 and tg:
                 try:
                     tg.send(f"🛑 <b>Native SL Reconciler</b>\nCancelled {orphan_count} orphan stop-loss order(s)")
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             return orphan_count
         except Exception as e:
             self._note_failure(f"reconcile: {type(e).__name__}: {e}")

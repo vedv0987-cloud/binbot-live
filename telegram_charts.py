@@ -160,6 +160,5 @@ def render_trade_chart(candles, entry: float, sl: float, tp: float,
         log.warning(f"render_trade_chart failed: {e}")
         try:
             _plt.close('all')  # cleanup on error
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return None

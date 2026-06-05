@@ -67,8 +67,7 @@ class Telegram:
                 self._dedup[msg] = _now
                 if len(self._dedup) > 200:  # prune
                     self._dedup = {k: v for k, v in self._dedup.items() if _now - v < _win}
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         try:
             self._pool.submit(self._send_blocking, msg)
         except Exception as _e:

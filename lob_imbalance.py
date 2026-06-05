@@ -107,5 +107,4 @@ class LOBImbalanceTracker:
 # v18 Fix: Warm up Numba JIT compiler
 try:
     _fast_obi_math(np.zeros(10), np.zeros(10), 10)
-except Exception:
-    pass
+except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")

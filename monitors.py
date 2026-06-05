@@ -95,7 +95,7 @@ class StablecoinFlow:
             if change > 1.5: self.signal = "INFLOW"
             elif change < -1.5: self.signal = "OUTFLOW"
             else: self.signal = "NEUTRAL"
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.last_check = time.time()  # v11.2.20 FIX: moved outside try — DDoS loop fix
         return self.signal
 
@@ -134,7 +134,7 @@ class MVRVMonitor:
                 self.signal = "OVERHEATED"  # BTC near ATH = careful
                 self.zscore = 7.0
             self.last_check = time.time()
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return self.signal
 
 # v9.3: DEFI LLAMA TVL MONITOR (chain health)
@@ -165,7 +165,7 @@ class TVLMonitor:
                         if change < -10: self.alerts.append(f"{coin} TVL -{abs(change):.0f}%")
                         elif change > 15: self.alerts.append(f"{coin} TVL +{change:.0f}%")
                     self.tvl_data[coin] = new_tvl
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.last_check = time.time()
         return self.alerts
     def get_tvl(self, coin):
@@ -201,9 +201,9 @@ class WhaleWalletMonitor:
                         self.signals[sym] = "WHALE_SELL"
                     else:
                         self.signals[sym] = "NEUTRAL"
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 time.sleep(0.2)  # Rate limit
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.last_check = time.time()
         return self.signals
 
@@ -236,9 +236,9 @@ class OpenInterestMonitor:
                             self.signals[sym] = "OI_DROP"    # Positions closing, consolidation
                         else:
                             self.signals[sym] = "OI_NORMAL"
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 time.sleep(0.3)
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.last_check = time.time()
         return self.signals
     def get_signal(self, pair):
@@ -283,7 +283,7 @@ class TokenUnlockMonitor:
                 if days_left < 30:
                     log.warning(f"⚠️ TokenUnlockMonitor: only {days_left}d of forward coverage "
                                 f"(last entry {last_unlock}) — refresh soon")
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
     def days_to_unlock(self, coin):
         """Returns days until next unlock for a coin. -1 if no unlock scheduled."""
         unlocks = self.UNLOCKS_2026.get(coin, [])
@@ -363,8 +363,7 @@ class KellySizer:
                 with open(self._kelly_state_file) as _f:
                     data = json.load(_f)
                     self.trade_history = data.get("trades", [])
-        except Exception:
-            pass  # First run or corrupted file - start fresh
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # First run or corrupted file - start fresh
 
     def _save_history(self):
         """v13.5.5 P4: persist kelly trade history to disk."""
@@ -372,8 +371,7 @@ class KellySizer:
             import json
             with open(self._kelly_state_file, "w") as _f:
                 json.dump({"trades": self.trade_history[-200:]}, _f)  # cap at 200
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 class HyperOptimizer:
     """Auto-tunes RSI/BB/MACD thresholds weekly using scipy."""
@@ -413,7 +411,7 @@ class HyperOptimizer:
                 self.last_opt = time.time()  # v14.6.1 FIX: throttle
                 import logging; logging.getLogger('binbot').info(f"HyperOpt skipped — only {len(closes)} closed trades (need 20+)")
                 return
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         """Find best RSI/BB parameters by simulating on recent data."""
         # v9.7.2 FIX: SCIPY gate dropped — uses random search internally, not scipy
         if len(candles) < 200:

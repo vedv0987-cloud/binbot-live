@@ -106,8 +106,7 @@ class PrometheusExporter:
             try:
                 self._server.shutdown()
                 self._server.server_close()
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     # ─── Public API (module-level locks) ──────────────────────────────────────
 

@@ -74,8 +74,8 @@ class SelfHealer:
                             with open(self._RESTART_FILE + ".tmp", "w") as f:
                                 json.dump({"last_ws_restart": _now}, f)
                             os.replace(self._RESTART_FILE + ".tmp", self._RESTART_FILE)
-                        except Exception: pass
-                    except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         else:
             self.stale_count = 0
 
@@ -181,7 +181,7 @@ class TradeJournal:
                 hr = datetime.fromisoformat(t.get("ts","")).hour
                 if hr not in stats[s]["hours"]: stats[s]["hours"][hr] = 0
                 stats[s]["hours"][hr] += pnl
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return stats
 
     def best_pairs(self, top_n=5):
@@ -244,7 +244,7 @@ class DrawdownShield:
                        f"${sane_ceiling:.2f} (current cap ${self.capital:.2f}). "
                        f"Trade journal unavailable ({_e}). Clamping to ceiling.")
                 try: log.warning(f"\u26a0\ufe0f  DD shield auto-fix: {_msg}")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 self.peak = sane_ceiling
             else:
                 self.peak = saved_peak
@@ -264,7 +264,7 @@ class DrawdownShield:
             self.peak = saved_peak
             try: log.info(f"\U0001f6e1\ufe0f  DD shield peak: ${saved_peak:.2f} "
                          f"(validated against journal, dd={self.drawdown_pct:.1f}%)")
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         else:
             # Discrepancy too large — saved_peak is contaminated. Use computed.
             old_peak = saved_peak
@@ -274,7 +274,7 @@ class DrawdownShield:
                 f"contaminated (true peak from journal: ${true_peak:.2f}, "
                 f"current cap ${self.capital:.2f}). Using ${floor_peak:.2f}. "
                 f"New dd={self.drawdown_pct:.1f}%")
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # Smart floor: peak can never be below current realized capital
 
     def _compute_true_peak_from_journal(self, journal_path="trades_v9.jsonl"):

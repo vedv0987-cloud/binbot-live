@@ -106,7 +106,7 @@ class ExchangeFailover:
                     log.info("✅ Binance recovered — exchange failover DISENGAGED")
                     if self.tg:
                         try: self.tg.send("✅ <b>Failover Disengaged</b>\nBinance API recovered, primary route restored")
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 self._error_count = 0
                 self._first_error_ts = 0
                 self._failover_active = False
@@ -137,7 +137,7 @@ class ExchangeFailover:
                             f"Routing reads to backup exchanges (Bybit/OKX)\n"
                             f"⚠️ Trading paused until Binance recovers"
                         )
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             return self._failover_active
 
     @property

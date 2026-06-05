@@ -490,8 +490,7 @@ class Config:
                             )
                             _risk_f = _risk_cap
                         object.__setattr__(self, "RISK_PCT", _risk_f)
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.API_KEY = os.getenv("BINANCE_API_KEY", "")
         self.API_SECRET = os.getenv("BINANCE_API_SECRET", "")
         self.TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN", "")

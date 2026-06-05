@@ -50,7 +50,7 @@ class TA:
                 arr = np.array(v, dtype=float)
                 res = _tl.EMA(arr, timeperiod=p)
                 return [float(x) if not np.isnan(x) else v[i] for i, x in enumerate(res)]
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         e = [sum(v[:p])/p]; m = 2/(p+1)
         for x in v[p:]: e.append(x*m + e[-1]*(1-m))
         return e
@@ -64,7 +64,7 @@ class TA:
                 res = _tl.RSI(_c(candles), timeperiod=p)
                 v = res[~np.isnan(res)]
                 return float(v[-1]) if len(v) > 0 else 50.0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         c = [x.c for x in candles]; g = []; l = []
         for i in range(1, len(c)):
             d = c[i]-c[i-1]; g.append(max(d,0)); l.append(max(-d,0))
@@ -79,7 +79,7 @@ class TA:
             try:
                 res = _tl.RSI(_c(candles), timeperiod=p)
                 return [float(x) for x in res if not np.isnan(x)]
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v14.6.5 AUDIT FIX (F35): previous pure-Python path was O(N²) — it called
         # TA.rsi(candles[:i+1], p) for each i, re-computing from scratch every time.
         # On 100 candles that's ~80×100 = 8000 ops per call, multiplied by every
@@ -124,7 +124,7 @@ class TA:
                 sl   = [float(x) if not np.isnan(x) else 0 for x in sl_arr]
                 hist = [float(x) if not np.isnan(x) else 0 for x in hist_arr]
                 return ml, sl, hist
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         ef = TA.ema(c,f); es = TA.ema(c,s); d = len(ef)-len(es)
         if d > 0: ef = ef[d:]
         ml = [a-b for a,b in zip(ef,es)]; sl = TA.ema(ml,sg); d2 = len(ml)-len(sl)
@@ -148,7 +148,7 @@ class TA:
                 # Pure-Python path below already used the correct formula — now they match.
                 bw = (u - l) / m * 100 if m > 0 else 0
                 return u, m, l, bw
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         s = sum(c[-p:])/p; v = sum((x-s)**2 for x in c[-p:])/p; d = v**0.5
         return s+sd*d, s, s-sd*d, 2*sd*d/s*100 if s > 0 else 0
 
@@ -162,7 +162,7 @@ class TA:
                 res = _tl.ATR(_h(candles), _l(candles), _c(candles), timeperiod=p)
                 v = res[~np.isnan(res)]
                 return float(v[-1]) if len(v) > 0 else candles[-1].c * 0.005
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         tr = [max(candles[i].h-candles[i].l,
                   abs(candles[i].h-candles[i-1].c),
                   abs(candles[i].l-candles[i-1].c)) for i in range(1, len(candles))]
@@ -179,7 +179,7 @@ class TA:
                 res = _tl.ADX(_h(candles), _l(candles), _c(candles), timeperiod=p)
                 v = res[~np.isnan(res)]
                 return float(v[-1]) if len(v) > 0 else 25.0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         pd, md, tr = [], [], []
         for i in range(1, len(candles)):
             hd = candles[i].h-candles[i-1].h; ld = candles[i-1].l-candles[i].l
@@ -211,7 +211,7 @@ class TA:
                                    fastk_period=k, slowk_period=d, slowd_period=d)
                 sk_v = sk[~np.isnan(sk)]; sd_v = sd[~np.isnan(sd)]
                 return (float(sk_v[-1]), float(sd_v[-1])) if len(sk_v) > 0 else (50.0, 50.0)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return 50.0, 50.0
 
     # ─── CCI ──────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ class TA:
                 res = _tl.CCI(_h(candles), _l(candles), _c(candles), timeperiod=p)
                 v = res[~np.isnan(res)]
                 return float(v[-1]) if len(v) > 0 else 0.0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return 0.0
 
     # ─── MFI ──────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ class TA:
                 res = _tl.MFI(_h(candles), _l(candles), _c(candles), _v(candles), timeperiod=p)
                 v = res[~np.isnan(res)]
                 return float(v[-1]) if len(v) > 0 else 50.0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return 50.0
 
     # ─── OBV ──────────────────────────────────────────────────────
@@ -249,7 +249,7 @@ class TA:
             try:
                 res = _tl.OBV(_c(candles), _v(candles))
                 return float(res[-1]) if not np.isnan(res[-1]) else 0.0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return 0.0
 
     # ─── CANDLESTICK PATTERNS (TA-Lib has 61 patterns) ────────────
@@ -291,7 +291,7 @@ class TA:
                         actual_score = abs(score) if res[-1] > 0 else -abs(score)
                         return name, actual_score
                 return "NONE", 0.0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # Pure Python fallback
         c = candles[-1]; p = candles[-2]; pp = candles[-3]
         body = abs(c.c-c.o); upper = c.h-max(c.c,c.o); lower = min(c.c,c.o)-c.l
@@ -494,5 +494,4 @@ class TA:
 # v18 Fix: Warm up Numba JIT compiler
 try:
     _fast_vwap_math(np.zeros(10), np.zeros(10), np.zeros(10), np.zeros(10))
-except Exception:
-    pass
+except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")

@@ -15,8 +15,7 @@ def _heal_memory():
                 corrupted_fn = f"{fn}.corrupted_backup_{int(time.time())}"
                 try:
                     os.rename(fn, corrupted_fn)
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 with open(fn, "w") as _f: _f.write("{}")
 _heal_memory()
 import gc
@@ -63,7 +62,6 @@ try:
 except ImportError:
     fcntl = None
     _HAS_FCNTL = False
-import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from types import SimpleNamespace  # v9.7.1: for synthetic ctx in crash protection
 from dataclasses import dataclass, field, asdict
@@ -119,7 +117,7 @@ try:
     _fh.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-7s | %(message)s", datefmt="%H:%M:%S"))
     # v13.5.3 Bug #22: attach to ROOT logger so binbot/binance/etc. all flow.
     logging.getLogger().addHandler(_fh)
-except Exception: pass
+except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 try:
     from dotenv import load_dotenv
@@ -399,8 +397,7 @@ class ProBotV11:
             if not hasattr(self, '_gate_stats'):
                 import collections as _c; self._gate_stats = _c.Counter()
             self._gate_stats[reason] += 1
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def _blk_warn(self, name, exc):
         """v18.9.6: surface a protective entry-block that RAISED (previously a silent
@@ -414,15 +411,14 @@ class ProBotV11:
                 self._blk_warn_ts[name] = now
                 log.warning(f"⚠️ risk-block '{name}' fail-open (raised → treated as not-blocked): "
                             f"{type(exc).__name__}: {exc}")
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     async def _detach_native_sl_before_sell(self, pos, reason="SELL"):
         """Cancel attached exchange-side SL before a bot-initiated market sell."""
         # v14.4: Also cancel native TP order to prevent double-sell
         if getattr(self, "native_tp", None):
             try: await asyncio.to_thread(self.native_tp.detach, pos)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         if not getattr(self.cfg, "NATIVE_SL_ENABLED", False):
             return True
         if not getattr(self, "native_sl", None):
@@ -439,8 +435,7 @@ class ProBotV11:
                     f"⚠️ <b>NATIVE SL DETACH FAILED</b> {pos.pair}\n"
                     f"Bot skipped market sell for {reason}; exchange-side SL remains the failsafe."
                 )
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             return False
         except Exception as e:
             log.warning(f"Native SL detach exception before {reason} for {pos.pair}: {e}")
@@ -460,8 +455,7 @@ class ProBotV11:
                 try:
                     self.risk.save_state(self.grid.pnl, self.grid.trades,
                                          self.hyperopt.best_params if self.hyperopt else None)
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             else:
                 log.warning(f"Native SL restore failed for {pos.pair} after failed {reason}")
         except Exception as e:
@@ -519,8 +513,7 @@ class ProBotV11:
                 _cc = self.candle_cache.get(sig.pair, [])
                 if len(_cc) >= 60 and TA.regime_detect(_cc) == "TREND_DOWN":
                     return block("coin_regime", f"{sig.pair} own 5m trend TREND_DOWN")
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v16.0.05: BEAR regime max 1 position — all alts fall together on BTC dump.
         # 2 correlated longs in BEAR = double SL hit risk on any market downturn.
@@ -636,17 +629,16 @@ class ProBotV11:
                         if o.get('type') in ('STOP_LOSS_LIMIT', 'STOP_LOSS'):
                             pos.native_sl_order_id = o.get('orderId')
                             try: pos.sl = float(o.get('stopPrice') or sl)
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             linked = True
                             break
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             self.risk.positions.append(pos)
             if not linked and getattr(self, 'native_sl', None):
                 try: await asyncio.to_thread(self.native_sl.attach, pos)
                 except Exception as _e: log.warning(f"Adopt SL attach {sym}: {_e}")
             try: self.risk.save_state()
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             log.warning(f"📥 ADOPTED orphan {sym}: qty={qty} @ ${price:.6f} (${qty*price:.2f}) "
                         f"SL=${pos.sl:.6f} {'[linked existing SL]' if linked else '[fresh SL]'}")
             try:
@@ -654,8 +646,7 @@ class ProBotV11:
                              f"📦 Qty: {qty} @ ${price:.6f} (${qty*price:.2f})\n"
                              f"🛑 SL: ${pos.sl:.6f} {'(linked)' if linked else '(new)'} | strat: ADOPTED\n"
                              f"Bot is now managing this coin (cost basis = current price).")
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             return pos
         except Exception as e:
             log.warning(f"Adopt orphan {sym} failed: {e}")
@@ -692,7 +683,7 @@ class ProBotV11:
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "heartbeat.txt"), "w") as _hb0:
                 _hb0.write(str(int(time.time())))
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         bal_data = await self.ex.get_asset_balance("USDT")
         bal = float(bal_data["free"]) + float(bal_data.get("locked", 0))
         # v8.4: Auto-detect capital from actual balance (compound start)
@@ -875,8 +866,8 @@ class ProBotV11:
                     with open("stuck_coins.jsonl") as sf:
                         for line in sf:
                             try: stuck_pairs.add(json.loads(line.strip())["pair"].replace("USDT",""))
-                            except Exception: pass
-            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             for b in (await self.ex.get_account())['balances']:
                 asset = b['asset']
                 free = float(b['free'])
@@ -980,7 +971,7 @@ class ProBotV11:
 
         # v14.4: Wire native TP to risk module (used in check_exits)
         try: self.risk.native_tp = self.native_tp
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # WebSocket
         try: self.ws.start(self.cfg.API_KEY, self.cfg.API_SECRET)
         except Exception as e: log.warning(f"WebSocket start failed: {e}")
@@ -999,7 +990,7 @@ class ProBotV11:
                     alt_res = self.bt.run(alt_pair, 7)
                     alt_ok = set(bt_res.get("disabled_strategies",[])) - set(alt_res.get("disabled_strategies",[]))
                     alt_disabled -= alt_ok  # Re-enable if works on any alt
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v13.5.3 audit Fix #5: union (not assign) so our pre-disabled list survives
             # the backtest pass. Was: hard-assignment overwrote SMC_OB+FVG block from __init__.
             _hard_disabled = set(self.disabled_strats)  # capture pre-set blocks
@@ -1023,7 +1014,7 @@ class ProBotV11:
             # Original line preserved below as a comment:
             # self.disabled_strats=[s for s in (alt_disabled | _hard_disabled) if s not in _PROTECTED_FROM_BACKTEST]
             self.disabled_strats=[s for s in _hard_disabled if s not in _PROTECTED_FROM_BACKTEST]
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # ML
         # v11.2.16: Skip ML retrain if trained within 2h (timestamp gate)
@@ -1040,7 +1031,7 @@ class ProBotV11:
                 if needs_train:
                     self.ml.train(await self.ex.klines("BTCUSDT","5m",2000),TA)
                     with open(ts_file, "w") as _f: _f.write("ok")  # v15.3 FIX: close file properly
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v16.0.0: Train LSTM deep learning model
         try:
@@ -1052,25 +1043,25 @@ class ProBotV11:
 
         # v16.0.0: Initialize token unlock tracker + economic calendar
         try: self.token_unlock.update()
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         try: self.econ_calendar.update()
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v18.9.5: prime Binance delist/halt gate at boot (fail-open)
         if getattr(self.cfg, 'BINANCE_ANNOUNCE_ENABLED', True):
             try: await asyncio.to_thread(self.binance_announce.update, self.cfg.PAIRS, self.ex.cl)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v8.3: Fetch DXY + Options on startup
         try: await asyncio.to_thread(self.dxy.update)
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         try: await asyncio.to_thread(self.options.update)
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v8.3: Train LSTM
         # v8.3: Run Monte Carlo on historical trades
         try:
             past_pnls=[t.get("pnl",0) for t in self.risk.trades if "pnl" in t]
             if len(past_pnls)>=10: self.monte_carlo.run(past_pnls, self.cfg.TOTAL_CAPITAL)
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 
         # v11.2.16: HyperOpt timestamp gate
@@ -1088,7 +1079,7 @@ class ProBotV11:
                     c5=await self.ex.klines("BTCUSDT","5m",500)
                     self.hyperopt.optimize(c5,TA)
                     with open(ts_hyper, "w") as _f: _f.write("ok")  # v15.3 FIX: close file properly
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v16.0.0 NEW: feature-health table — log exactly which modules are live/inactive
         # so advertised-but-dead features can never silently hide again.
@@ -1172,7 +1163,7 @@ class ProBotV11:
                                                 tq = sum(float(f["qty"]) for f in fills)
                                                 tc = sum(float(f["qty"]) * float(f["price"]) for f in fills)
                                                 if tq > 0: price = tc / tq
-                                        except Exception: pass
+                                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                                         self.risk._record_close(pos, price, reason, _emerg_ctx, self.tg)
                                         with _pos_lock:
                                             if pos in self.risk.positions:
@@ -1199,8 +1190,8 @@ class ProBotV11:
                     _tp_oid = getattr(_p, "native_tp_order_id", None)
                     if _tp_oid:
                         try: self.native_tp.detach(_p); log.info(f"  Cancelled native TP {_p.pair} #{_tp_oid}")
-                        except Exception: pass
-        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v15.2: async shutdown — cancel orders, cleanup
         await self._async_shutdown()
         await self.ex.close()
@@ -1217,13 +1208,13 @@ class ProBotV11:
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "heartbeat.txt"), "w") as _hb:
                 _hb.write(str(int(time.time())))
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         if self.cycles % 50 == 0: asyncio.get_event_loop().run_in_executor(None, gc.collect)  # v16.0 AUDIT FIX M4: was gc.collect() blocking hot path — now background thread
 
         # v18.9.5: refresh Binance delist/halt gate (self-throttled by TTL ~15min; fail-open)
         if getattr(self.cfg, 'BINANCE_ANNOUNCE_ENABLED', True) and self.cycles % 20 == 0:
             try: await asyncio.to_thread(self.binance_announce.update, self.cfg.PAIRS, self.ex.cl)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v16.0.0 NEW: gate-rejection telemetry histogram (helps tune MIN_CONF/heat/cooldown).
         if getattr(self.cfg, 'GATE_TELEMETRY_ENABLED', True):
@@ -1268,7 +1259,7 @@ class ProBotV11:
                         log.warning(f"Force-close {_fp.pair} failed: {_fce}")
                 self.risk.save_state()
                 try: self.tg.send(f"✅ Force-close complete. Positions remaining: {len(self.risk.positions)}")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
             # 2. Heartbeat every TG_HEARTBEAT_HOURS hours
             if getattr(self.cfg, 'TG_ENABLED', False):
@@ -1279,7 +1270,7 @@ class ProBotV11:
                 except Exception as _ace: log.debug(f"CapActivator check failed: {_ace}")
                 # v16.0.06: record daily equity sample for equity curve MA
                 try: self.risk.record_equity(_equity)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 # v16.0.05: PortfolioKelly auto-enable at PORTFOLIO_KELLY_MIN_TRADES trades.
                 # Kelly requires enough history (50+ trades) to compute reliable strategy weights.
                 _kelly_min = getattr(self.cfg, 'PORTFOLIO_KELLY_MIN_TRADES', 50)
@@ -1297,7 +1288,7 @@ class ProBotV11:
                         f"📊 {_total_t} trades reached!\n"
                         f"Strategies now sized by historical edge.\n"
                         f"Dynamic regime scaling: TREND×1.0 RANGE×0.5 CHOPPY×0.25")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 _day_pnl = getattr(self.risk, 'daily_pnl', 0)
                 _w = getattr(self.risk, 'wins', 0); _l = getattr(self.risk, 'losses', 0)
                 _wr = (_w / (_w + _l) * 100) if (_w + _l) > 0 else 0
@@ -1336,7 +1327,7 @@ class ProBotV11:
                         try:
                             _cp_px = float((await self.ex.get_symbol_ticker(_cp.pair))["price"])
                             if _cp_px > 0: _total += _cp.qty * _cp_px
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 if _total > 5.0 and abs(_total - self.cfg.TOTAL_CAPITAL) > 1.0:
                     self.cfg.TOTAL_CAPITAL = round(_total, 2)
                     self.risk.cfg.TOTAL_CAPITAL = self.cfg.TOTAL_CAPITAL
@@ -1344,7 +1335,7 @@ class ProBotV11:
                     try:
                         _free_usdt = float((await self.ex.get_asset_balance("USDT")).get("free", 0))
                         self.risk._real_usdt_free = _free_usdt
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     log.info(f"💰 Capital auto-synced: ${self.cfg.TOTAL_CAPITAL:.2f} (free+positions)")
                     # v16.0.0 AUDIT FIX (C2): removed runtime regex self-rewrite of config.py
                     # (corruption risk, fought version control, surprising side effect).
@@ -1355,7 +1346,7 @@ class ProBotV11:
                         log.info(f"💾 Capital persisted to state.json: ${round(_total, 2)}")
                     except Exception as _e:
                         log.warning(f"Capital state persist failed: {_e}")
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v11.2.16: DEPOSIT DETECTOR — one-way sync (up only), every 10 cycles
         # v16.0 AUDIT FIX C3: skip if auto-sync already ran this cycle (every 30 / cycle 1)
@@ -1417,14 +1408,14 @@ class ProBotV11:
                 self._ws_reconnects = 0  # v14.5.1 FIX (audit #16): reset counter on success (was: _rc, never incremented)
                 log.info(f"✅ WS reconnected successfully")
                 try: self.tg.send(f"🔌 <b>WS auto-reconnected</b> (attempt #{_rc+1})")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             except Exception as _we:
                 self._ws_reconnects = _rc + 1
                 log.error(f"❌ WS reconnect failed: {_we} (attempt #{_rc+1})")
                 if self._ws_reconnects >= 3:
                     log.error("❌ WS dead after 3 reconnects — triggering systemd restart")
                     try: self.tg.send("🚨 <b>WS unrecoverable — bot restarting via systemd</b>")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     import sys; sys.exit(1)
             if not tickers: tickers=await self.ex.tickers()
         else: tickers=await self.ex.tickers()
@@ -1458,7 +1449,7 @@ class ProBotV11:
                                 priority="CRITICAL")
                         except Exception:
                             try: self.tg.send(f"💀 <b>DEAD-MAN SWITCH</b> — price-blind {_blind:.0f}s, action={_act}")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         if _act == "flatten":
                             # request the existing force-close-all drain (runs next cycle top)
                             self._force_close_all_requested = True
@@ -1507,8 +1498,7 @@ class ProBotV11:
                                 if "error" not in r2:
                                     r = r2
                                     log.info(f"🔁 CRASH retry succeeded {pos.pair}")
-                        except Exception:
-                            pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     if "error" in r:
                         await self._restore_native_sl_after_failed_sell(pos, "CRASH")
                         # v18.9.9 (audit H3): the coins are STILL in the wallet — do NOT synthesize
@@ -1671,7 +1661,7 @@ class ProBotV11:
                             f"⚠️ NEW positions blocked. Existing positions managed normally.",
                             priority="CRITICAL")
                         self._last_dd_alert_at = self.cycles
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         else:
             self._dd_kill_ticks = 0
             if getattr(self, '_last_dd_alert_at', None) is not None:
@@ -1680,7 +1670,7 @@ class ProBotV11:
                     self.tg.critical_alert("DD SHIELD RECOVERED",
                         f"Drawdown back under threshold\nEquity: ${bal:.2f}\n✅ New positions allowed again.",
                         priority="HIGH")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 self._last_dd_alert_at = None
 
         # v8.4: AUTO-COMPOUNDING — update capital from actual balance
@@ -1719,7 +1709,7 @@ class ProBotV11:
                     log.warning(f"Intel async error: {e}")
             try:
                 threading.Thread(target=_run_intel_async, daemon=True, name="IntelAsync").start()
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v9.2: Log event + stablecoin status
         if self.cycles % 50 == 1:
             eh = self.risk.event_cal.hours_to_next()
@@ -1731,18 +1721,18 @@ class ProBotV11:
         # v8.3: Update intelligence modules periodically
         if self.cycles % 20 == 0:  # Every 5 min
             try: await asyncio.to_thread(self.whale.update)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.multi_ex.analyze, "BTCUSDT")
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v8.4: Refresh new intelligence modules
             try: await asyncio.to_thread(self.gecko_trending.refresh)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.gecko_movers.refresh)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try:
                 tickers_24h = await self.ex.get_ticker()
                 await asyncio.to_thread(self.exchange_flow.refresh, tickers_24h)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v11.2.10: Update new intelligence modules
             try: await asyncio.to_thread(self.long_short.update)
             except Exception as e: log.debug(f"LongShort refresh: {e}")
@@ -1800,18 +1790,18 @@ class ProBotV11:
             except Exception as e: log.debug(f"EconCalendar refresh: {e}")
         if self.cycles % 60 == 0:  # Every 15 min
             try: self.meta_learner.update_weights()
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: self.model_selector.evaluate()
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v8.4: Social sentiment (slower refresh — 15min)
             try:
                 coins = [p["n"] for p in self.cfg.PAIRS[:10]]
                 await asyncio.to_thread(self.social_sentiment.refresh, coins)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.dxy.update)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.options.update)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # Ghost position check every 20 cycles — keeps bot in sync with Binance wallet.
         # Detects positions tracked by the bot but no longer present in the wallet
@@ -1972,7 +1962,7 @@ class ProBotV11:
                         trades = next(x[3] for x in _scored if x[0]==s)
                         log.warning(f"🔪 AUTO-KILLED strategy {s}: WR={wr*100:.1f}% PnL=${pnl:.4f} over {trades} trades")
                         try: self.tg.send(f"🔪 STRATEGY KILLED: {s} | WR={wr*100:.1f}% | PnL=${pnl:.4f} | {trades}t | Below 45% WR — disabled")
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 # Log full attribution at 50-trade milestone
                 if len(_closes) == 50:
                     log.info("📊 50-TRADE MILESTONE — Strategy Attribution:")
@@ -2046,7 +2036,7 @@ class ProBotV11:
                             self.risk.save_state(self.grid.pnl, self.grid.trades,
                                                  self.hyperopt.best_params if self.hyperopt else None)
                             try: self.tg.send(f"🎯 <b>NATIVE TP FILLED</b> {_ntp_pos.pair}\n💲 ${_ntp_price:.4f}\n✅ Exchange exit — profit secured")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     except Exception as _ntpe:
                         log.debug(f"Native TP cycle check {_ntp_pos.pair}: {_ntpe}")
             closed=await self.risk.check_exits(tickers,ctx,self.ex,self.tg)  # v15.4 FIX: await async
@@ -2091,7 +2081,7 @@ class ProBotV11:
                                 else:
                                     log.warning(f"⚠️ Native SL re-attach FAILED after partial {_ppos.pair} — software SL covering")
                                     try: self.tg.send(f"⚠️ <b>NATIVE SL RE-ATTACH FAILED</b> {_ppos.pair}\nAfter scale-out; software SL is the failsafe — check manually.")
-                                    except Exception: pass
+                                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             except Exception as _rae:
                                 log.warning(f"Native SL re-attach exception {_ppos.pair}: {_rae}")
                         log.info(
@@ -2105,7 +2095,7 @@ class ProBotV11:
                                 f"PnL: ${_partial_pnl:+.4f}\n"
                                 f"Runner: {_ppos.qty} remaining ✅"
                             )
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         self.risk.save_state()
                     else:
                         log.warning(f"Partial scale-out {_ppos.pair} failed: {_r}")
@@ -2115,7 +2105,7 @@ class ProBotV11:
                 except Exception as _pe:
                     log.warning(f"Partial scale-out {_ppos.pair}: {_pe}")
                     try: await self._restore_native_sl_after_failed_sell(_ppos, reason="SCALE_OUT")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
             actually_closed = []
             for pos, close_price, reason in closed:
@@ -2168,8 +2158,7 @@ class ProBotV11:
                                 self.tg.send(f"🛡️ <b>NATIVE SL EXIT</b> {pos.pair}\n"
                                              f"💲 Filled @ ${actual_price:.4f} | reason: {reason}\n"
                                              f"✅ Bot detected native SL fill — no double-sell")
-                            except Exception:
-                                pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             pos.native_sl_order_id = None
                     except Exception as _ge:
                         # -2013 "Order does not exist" etc. → treat as no native SL
@@ -2411,7 +2400,7 @@ class ProBotV11:
                                 f"(execute() is unwired; do 3-leg trade by hand if worthwhile)")
                         log.info(f"💎 TriArb: {_key} expected {_bps:.1f}bps")
                         try: self.tg.send(_msg)
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 except Exception as _tri_scan_e:
                     log.debug(f"TriArb scan failed: {_tri_scan_e}")
 
@@ -2498,7 +2487,7 @@ class ProBotV11:
                     self.ml.accuracy if self.ml else 0,
                     "", "", "", ""
                 )
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             log.info(
                 f"⏱ #{self.cycles} | {ctx.regime} {ctx.daily}/{ctx.h4} {ctx.killzone}  "
                                 f"F&G:{ctx.fg} BTC:{'✅' if getattr(ctx,'btc_ok',True) else '❌'}{news} Heat:{s['heat']:.1f}% MTF:{getattr(ctx,'mtf_align',50):.0f} | "
@@ -2582,7 +2571,7 @@ class ProBotV11:
                     try: self.tg.send(f"⚠️ <b>EXPOSURE FULL</b>: {pct*100:.1f}% crypto ≥ "
                                       f"{self.exposure_guard.max_crypto_pct*100:.0f}% limit — new entries paused "
                                       f"(existing positions managed normally).")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     self._exposure_alert_ts = _now
                 self._exposure_blocked = True
                 return  # block new entries
@@ -2591,7 +2580,7 @@ class ProBotV11:
                 if getattr(self, '_exposure_blocked', False):
                     self._exposure_blocked = False
                     try: self.tg.send(f"✅ <b>EXPOSURE OK</b>: {pct*100:.1f}% crypto — new entries resumed.")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
     
         if getattr(self.cfg, 'GRID_SYNC_INTERVAL', 10) > 0 and self.cycles % getattr(self.cfg, 'GRID_SYNC_INTERVAL', 10) == 0:
             for p in self.cfg.PAIRS[:4]:
@@ -2739,8 +2728,7 @@ class ProBotV11:
                     _pc5 = await self.ex.klines(_pos.pair, "5m", 60)
                     if _pc5:
                         self.candle_cache[_pos.pair] = _pc5
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         ranked=self.strat.rank(all_sigs)
         if ranked:
@@ -2829,64 +2817,64 @@ class ProBotV11:
                     # would raise and abort the ENTIRE adjustment block. Wrapping makes
                     # each a clean skip.
                     try: adjustments.append(("dxy", _adj(self.dxy.get_boost(), 0.15)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("options", _adj(self.options.get_boost(), 0.12)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("multi_ex", _adj(self.multi_ex.get_boost(), 0.12)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("whale", _adj(self.whale.get_boost(), 0.08)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Market microstructure (medium weight)
                     try: adjustments.append(("ls_ratio", _adj(self.long_short.get_boost(), 0.10)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("ex_flow", _adj(self.exchange_flow.get_boost(sig.pair), 0.06)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Supplementary modules (lower weight)
                     try: adjustments.append(("gecko_t", _adj(self.gecko_trending.get_boost(sig.pair), 0.04)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("gecko_m", _adj(self.gecko_movers.get_boost(sig.pair), 0.04)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("social", _adj(self.social_sentiment.get_boost(sig.pair), 0.03)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("nlp", _adj(self.transformer_nlp.get_boost(), 0.03)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("hash", _adj(self.hash_rate.get_boost(), 0.03)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     # v12.0: Aggressor flow
                     try: adjustments.append(("aggflow", _adj(self.aggressor_flow.get_boost(sig.pair), 0.07)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     # v12.0: Per-coin profile boost
                     try:
                         cur_hour = datetime.now(timezone.utc).hour
                         cp_boost = self.coin_profiles.signal_boost(sig.pair, sig.strategy, cur_hour)
                         adjustments.append(("coin_prof", _adj(cp_boost, 0.06)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     # v12.2: New intelligence modules
                     try: adjustments.append(("funding", _adj(self.funding_rate.get_boost(sig.pair), 0.10)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("liq", _adj(self.liquidation.get_boost(), 0.08)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     # v14.2: Institutional module confidence adjustments
                     try: adjustments.append(("vol_delta", _adj(self.vol_delta.get_boost(sig.pair), 0.12)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("lob", _adj(self.lob.get_boost(sig.pair), 0.10)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("liq_cascade", _adj(self.liq_cascade.get_boost(sig.pair), 0.08)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     # v15.0 Gap #2: spot_perp boost DISABLED — without futures shorts, the
                     # basis signal can't be captured. Removed from additive scoring.
                     # try: adjustments.append(("spot_perp", _adj(self.spot_perp.get_boost(sig.pair), 0.08)))
-                    # except Exception: pass
+                    # except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("vpin", _adj(self.vpin.get_boost(sig.pair), 0.10)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("smartcoin", _adj(self.smart_coin.get_boost(sig.pair), 0.04)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("cnews", _adj(self.crypto_news.get_boost(sig.pair), 0.05)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     
                     try:
                         # Feed headlines to Azure OpenAI for a human-like sentiment boost
@@ -2899,16 +2887,16 @@ class ProBotV11:
                             if oai_score != 0:
                                 oai_boost = 1.0 + (oai_score * 0.15) # +/- 15%
                                 adjustments.append(("openai", _adj(oai_boost, 0.15)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("momentum", _adj(self.momentum.get_boost(sig.pair), 0.06)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # RL agent
                     try:
                         sig_atr_p = sig.atr/max(sig.price,0.001)*100 if sig.price>0 else 1.0
                         rl_b = self.rl.get_boost(ctx.regime, ctx.daily, sig_atr_p, ctx.fg)
                         adjustments.append(("rl", _adj(rl_b, 0.08)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Monte Carlo risk penalty
                     if self.monte_carlo.should_reduce_risk():
@@ -2920,20 +2908,20 @@ class ProBotV11:
                         if lstm_prob != 0.5:  # 0.5 = neutral/unavailable
                             lstm_adj = (lstm_prob - 0.5) * 0.20  # ±10% max
                             adjustments.append(("lstm", lstm_adj))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # v16.0.0: Token unlock confidence penalty
                     try:
                         unlock_boost = self.token_unlock.get_boost(sig.pair)
                         if unlock_boost < 1.0:
                             adjustments.append(("unlock", _adj(unlock_boost, 0.12)))
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Sum all adjustments, clamp to [-0.15, +0.15] to prevent wild swings
                     total_adj = sum(v for _, v in adjustments)
                     total_adj = max(-0.15, min(0.15, total_adj))
                     sig.conf = round(max(0, min(1.0, base_conf + total_adj)), 2)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         if not ranked: return
 
@@ -2969,8 +2957,7 @@ class ProBotV11:
                         log.info(f"💤 {sig.pair} SKIP[thin] — 24h vol ${_qv:,.0f} < ${_minvol:,.0f}")
                         self._gate_reject("thin_volume")
                         continue
-                except Exception:
-                    pass  # fail-open: a ticker hiccup must not block trading
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # fail-open: a ticker hiccup must not block trading
             # v13.2: Attach MTF alignment for position sizing in risk.py
             sig._ctx_mtf_align = getattr(ctx, 'mtf_align', 50)
             ok,reason,size=self.risk.can_trade(sig,ctx.fg)
@@ -2985,7 +2972,7 @@ class ProBotV11:
                 # v15.5 FIX: disabled - double-scaling with can_trade _vol_scalar (ARB opened $38 on $54 wallet)
                 pass  # was: size = self.risk.volatility_adjusted_size(size, _atr_pct_vs, _grp_vs)
                 size = max(self.cfg.MIN_TRADE, round(size, 2))
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v9.4: Grade gate — only A+ and A trades allowed
             # v9.4: Volatility filter — skip dead markets
             # v11.2: Three-tier gate (SKIP / HALF / FULL) on 5m ATR. Gate values in
@@ -3008,7 +2995,7 @@ class ProBotV11:
                     # v14.6 intentionally removed half-sizing → fixed 33.33% allocation.
                     # Low-vol path now just logs informational and continues at full size.
                     log.info(f"ℹ️ {sig.pair} LOW_VOL — ATR {atr_pct:.2f}% < {_gate_full:.2f}% (group {_grp}, full size kept)")
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             _mtf = getattr(ctx, "mtf_align", 50)
             # v14.3 FIX: Accumulation strategies (Wyckoff/SMC) work in low-momentum
             # environments — MTF is naturally suppressed during Phase B/C accumulation.
@@ -3048,7 +3035,7 @@ class ProBotV11:
                         sig.conf = round(max(0, sig.conf - 0.05), 2)
                     elif ob_label == "BUY_WALL":
                         sig.conf = round(min(1.0, sig.conf + 0.05), 2)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
             # v9.2: Funding Rate Signal — negative funding = bullish edge
             # v11.2.10 FIX: was futures_funding_rate() (requires futures API perms, wasted ~360 calls/hr)
@@ -3065,7 +3052,7 @@ class ProBotV11:
                 elif fr > 0.001:  # High positive funding = overleveraged longs = bearish
                     sig.conf = round(max(0, sig.conf - 0.07), 2)
                     log.info(f"💸 {sig.pair} funding {fr:.4f} BEARISH reduce → conf {sig.conf}")
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # Re-check after adjustments. v18.9.9 (audit H3): also require the PRE-nudge
             # conviction within a small tolerance of MIN_CONF, so OB/funding nudges can't push
             # a sub-threshold signal over the line on their own.
@@ -3230,8 +3217,7 @@ class ProBotV11:
             eq = float(o.get("executedQty", 0) or 0)
             if status == "FILLED" or eq > 0:
                 return self._build_filled_result(sym, order_id, o)
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return None
 
     def _build_filled_result(self, sym, order_id, o):
@@ -3291,7 +3277,7 @@ class ProBotV11:
             if _HAS_FCNTL:
                 fcntl.flock(self._lock_file, fcntl.LOCK_UN)
             self._lock_file.close()
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v15.2: Signal handler must be sync. Just set flag — async cleanup
         # happens in run()'s exit path where we CAN await.
         self.running = False
@@ -3317,7 +3303,7 @@ class ProBotV11:
                         continue
                     await self.ex.cancel_order(symbol=p["s"], orderId=oid)
                     log.info(f"Cancelled open order {p['s']} #{oid} ({otype})")
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.risk.save_state(self.grid.pnl,self.grid.trades,
                              self.hyperopt.best_params if self.hyperopt else None)
         self.ws.stop()
@@ -3340,7 +3326,7 @@ class ProBotV11:
         # Brief sleep so the final TG send has a chance to flush before pool closes.
         await asyncio.sleep(1)  # v16.0 AUDIT FIX H2: was time.sleep(1) — blocked entire event loop
         try: self.tg.close()
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.running=False
 
     def _summary(self):

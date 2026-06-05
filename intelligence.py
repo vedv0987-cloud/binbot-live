@@ -463,8 +463,7 @@ class BinanceAnnouncements:
                     t = a.get('title')
                     if t:
                         out.append(t)
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return out
 
     @staticmethod
@@ -500,8 +499,7 @@ class BinanceAnnouncements:
                     if p not in live:
                         halted.add(p.replace('USDT', ''))
                 self._halted = {b for b in halted if b}
-            except Exception:
-                pass  # fail-open: keep previous
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # fail-open: keep previous
 
         # Layer 2 — delisting announcements (best-effort early warning)
         try:
@@ -1328,12 +1326,12 @@ class Intel:
         # Update background trackers safely
         for tracker in [self.funding, self.liq, self.news]:
             try: tracker.update()
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         
         try: 
             if hasattr(self, 'ex') and self.ex:
                 self.momentum.update(symbols=["ETHUSDT", "SOLUSDT", "BNBUSDT"], exchange=self.ex)
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def context(self, heat=None):
         ctx = Context()
@@ -1414,13 +1412,13 @@ class Intel:
                     return "NEUTRAL"
             try:
                 ctx.daily = _trend_label(_sync_klines("BTCUSDT", "1d", 60))
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try:
                 ctx.h4 = _trend_label(_sync_klines("BTCUSDT", "4h", 60))
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try:
                 ctx.h1 = _trend_label(_sync_klines("BTCUSDT", "1h", 60))
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # Fallback: momentum-only regime when TA / exchange unavailable
         if not _regime_set:
             if btc_mom > 1.0:

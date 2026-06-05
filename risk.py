@@ -33,7 +33,7 @@ class Risk:
             if _os.path.exists(_ecf):
                 with open(_ecf) as _ef:  # v16.0 AUDIT FIX M8: was open() without close — file handle leak
                     self._equity_samples = _j.load(_ef).get('samples', [])
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self._saved_dd_peak = 0  # v11.2.8: holds restored DrawdownShield.peak; bot.py reads this to wire into ddshield
         self.kelly = KellySizer(cfg.KELLY_FRACTION)
         # v13.5: pass PRE_EVENT_HOURS so operator can opt into pre-event blocking
@@ -384,7 +384,7 @@ class Risk:
                                 _lines = _f.readlines()[-500:]
                             for _ln in _lines:
                                 try: _trades.append(_jj.loads(_ln))
-                                except Exception: pass
+                                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     except Exception as _ee:
                         log.warning(f"Group D loss check JSONL fallback failed: {_ee}")
                 _d_loss = sum(float(t.get('pnl',0)) for t in _trades 
@@ -393,7 +393,7 @@ class Risk:
                               and t.get('group','') == 'D')
                 if _d_loss < -(self.cfg.TOTAL_CAPITAL * self.cfg.GROUP_D_DAILY_LOSS_PCT):
                     return False, 'GroupD_DailyLoss', 0
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v14.6.2: Group D max 1 position
         if sig.group == 'D' and grp >= self.cfg.GROUP_D_MAX_POS:
             return False, 'MaxPos_D', 0
@@ -527,7 +527,7 @@ class Risk:
             log.info(f"📉 {sig.pair} equity below MA (${_ma_val:.2f}) → size ×{_eq_mult} (${size:.2f}→${size*_eq_mult:.2f})")
             if self.tg:
                 try: self.tg.send(f"📉 <b>EQUITY CURVE</b> — sizing reduced ×{_eq_mult}\nEquity below {len(self._equity_samples[-10:])}d MA")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             size *= _eq_mult
         # v16.0: Daily volatility harvesting — reduce size on big days / losing days.
         # Paper §5.3: rebalancing bots siphon excess profits into stablecoins during rallies.
@@ -572,7 +572,7 @@ class Risk:
                 log.info(f"📐 {sig.pair} MTF misalign ({_align:.0f}) → size ×0.6")
             elif _align < 45:
                 size *= 0.8  # Mild disagreement → 20% reduction
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         if size<self.cfg.MIN_TRADE: return False,"Small",0
         # v8.3: Fee gate — skip if expected profit < 2x fees
         try:
@@ -679,7 +679,7 @@ class Risk:
                                     f"Slip: {slip_pct:+.3f}% (threshold {self.cfg.MAX_SLIP_PCT*100:.2f}%)\n"
                                     f"Position TRACKED — SL/TP re-anchored to fill price\n"
                                     f"R:R preserved. Review slip_telemetry.jsonl.")
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     elif abs(slip_pct) > 5.0:  # v11.2.22 FIX: was 0.05% (5bps) — spammed log for every normal spread
                         log.info(f"  📐 {sig.pair} slip {slip_pct:+.2f}% — SL/TP re-anchored: "
                                  f"SL ${sig.sl:.4f}→${new_sl:.4f}  TP ${sig.tp:.4f}→${new_tp:.4f}")
@@ -742,14 +742,14 @@ class Risk:
                                               f"⛔ Position has NO exchange-side SL\n"
                                               f"🛡️ Software SL active at ${_pos.sl:.4f}\n"
                                               f"⚠️ Manual review required")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         return
                 log.info(f'  🛡️ Native SL attached for {_pos.pair}')
             except Exception as _e:
                 log.warning(f'Native SL attach failed {_pos.pair}: {_e}')
                 if self.tg:
                     try: self.tg.send(f"⚠️ <b>NATIVE SL ERROR</b> {_pos.pair}: {_e}")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         async def _safe_tp_attach(_pos):
             try:
                 _ok = await asyncio.to_thread(self.native_tp.attach, _pos)
@@ -769,7 +769,7 @@ class Risk:
         if _TCA is not None:
             try: _TCA.record_entry(pos, signal_price=orig_signal_price,
                                    order_type=("LIMIT_MAKER" if self.cfg.USE_LIMIT else "MARKET"))
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v15.2 #2 FIX: audit log entry decision (hash-chained, tamper-evident)
         _audit = getattr(getattr(self, '_bot_ref', None), '_audit', None)
         if _audit is not None:
@@ -777,7 +777,7 @@ class Risk:
                             grade=pos.grade, conf=getattr(sig, 'conf', 0),
                             entry=pos.avg_entry, sl=pos.sl, tp=pos.tp,
                             qty=pos.qty, size_usd=pos.size)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         self.save_state()
         # v15.4 TG UPGRADE: render chart and attach to BUY alert (best-effort, never blocks).
         # Fetches its own candles via exchange.klines() — 1 extra REST call per BUY (~50ms).
@@ -866,7 +866,7 @@ class Risk:
                         if _c_pct > pct:
                             pct = _c_pct
                             log.debug(f"📈 {pos.pair} candle high ${_c_high:.4f} used for BE check (WS had ${price:.4f})")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
             # Scale-out (sells immediately, records partial PnL)
             if self.cfg.SCALE_OUT and pct>0:
@@ -974,8 +974,7 @@ class Risk:
                                         f"📍 Gap to SL: {_gap_to_sl*100:.2f}%\n"
                                         f"🚪 Exiting early — better than SL fill"
                                     )
-                                except Exception:
-                                    pass
+                                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             to_close.append((pos, price, "VELOCITY_EXIT"))
                             continue
 
@@ -1009,7 +1008,7 @@ class Risk:
                                     f"Hold: {_age_h:.1f}h\n"
                                     f"SL: ${_old:.4f} → ${pos.sl:.4f} (-{_tight_pct*100:.1f}%)"
                                 )
-                                except Exception: pass
+                                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 except Exception as _pse:
                     log.debug(f"Progressive SL {pos.pair}: {_pse}")
 
@@ -1040,8 +1039,7 @@ class Risk:
                                     f"📊 Progress: {_progress*100:.2f}%\n"
                                     f"🚪 Stagnant in BEAR — freeing capital"
                                 )
-                            except Exception:
-                                pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         to_close.append((pos, price, "TIME_EXIT"))
                         continue
                 except Exception as _te:
@@ -1139,7 +1137,7 @@ class Risk:
                                 log.info(f"🔒 {pos.pair} {_label_full} → SL ${old_sl:.4f}→${pos.sl:.4f}")
                                 if self.tg:
                                     try: self.tg.send(f"🔒 <b>{_label_full}</b> {pos.pair}\nSL ${old_sl:.4f} → ${pos.sl:.4f}")
-                                    except Exception: pass
+                                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                                 if getattr(self, 'native_sl', None):
                                     # v15.12.0: retry up to SL_MOVE_RETRIES times — fixes MOVE FAILED
                                     _move_ok = False
@@ -1160,7 +1158,7 @@ class Risk:
                                         log.warning(f"Native SL move FAILED all {_retries} attempts {pos.pair}")
                                         if self.tg:
                                             try: self.tg.send(f"⚠️ NATIVE SL {label} MOVE FAILED {pos.pair} ({_retries} retries)")
-                                            except Exception: pass
+                                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                                 self.save_state()
                                 # v16.0 / v18.8.7: partial scale-out at rungs.
                                 _total_rungs = len(_ladder)
@@ -1205,16 +1203,16 @@ class Risk:
                         log.info(f"🎯 {pos.pair} TP REACHED ${pos.tp:.4f} → SL pinned at TP (chase mode, NO SELL)")
                         if self.tg:
                             try: self.tg.send(f"🎯 <b>TP REACHED — CHASE</b> {pos.pair}\n💲 Hit TP ${pos.tp:.4f}\n🔒 SL = TP exactly\n🚀 Letting it run")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         if getattr(self, "native_tp", None):
                             try: await asyncio.to_thread(self.native_tp.detach, pos)
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         if getattr(self, 'native_sl', None):
                             try:
                                 _m = await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
                                 if _m is False and self.tg:
                                     try: self.tg.send(f"⚠️ NATIVE SL TP-FLOOR MOVE FAILED {pos.pair}")
-                                    except Exception: pass
+                                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             except Exception as _e:
                                 log.warning(f"Native SL TP-floor move failed {pos.pair}: {_e}")
                         self.save_state()
@@ -1244,13 +1242,13 @@ class Risk:
                         log.info(f"📈 {pos.pair} CHASE — SL ${old_sl:.4f}→${pos.sl:.4f} (high ${high_price:.4f}, gap ${chase_gap:.4f})")
                         if self.tg:
                             try: self.tg.send(f"📈 <b>CHASE</b> {pos.pair}\nPeak ${high_price:.4f}\nSL ${old_sl:.4f} → ${pos.sl:.4f}")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         if getattr(self, 'native_sl', None):
                             try:
                                 _m = await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
                                 if _m is False and self.tg:
                                     try: self.tg.send(f"⚠️ NATIVE SL CHASE MOVE FAILED {pos.pair}")
-                                    except Exception: pass
+                                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             except Exception as _e:
                                 log.warning(f"Native SL chase move failed {pos.pair}: {_e}")
                         self.save_state()
@@ -1279,8 +1277,7 @@ class Risk:
                                 self.tg.send(f"⚠️ <b>NATIVE SL BE-MOVE FAILED</b> {pos.pair}\n"
                                              f"🛡️ Software SL still active at ${pos.sl:.4f}\n"
                                              f"⚠️ Exchange-side failsafe NOT in place — review")
-                            except Exception:
-                                pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         self.save_state()
                     except Exception as _e: log.warning(f'Native SL BE-move failed: {_e}')
                 self.save_state()  # v11.2.20 FIX: persist BE lock — was lost on restart
@@ -1298,7 +1295,7 @@ class Risk:
                         _moved = await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
                         if _moved is False and self.tg:
                             try: self.tg.send(f"⚠️ NATIVE SL +2% MOVE FAILED {pos.pair} | SL ${pos.sl:.4f} | Exchange failsafe gone")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         self.save_state()
                     except Exception as _e: log.warning(f'Native SL +2pct-move failed: {_e}')
               if pct >= 0.05 and pos.sl < pos.avg_entry * 1.035 - 0.000001:
@@ -1310,7 +1307,7 @@ class Risk:
                         _moved = await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
                         if _moved is False and self.tg:
                             try: self.tg.send(f"⚠️ NATIVE SL +3.5% MOVE FAILED {pos.pair} | SL ${pos.sl:.4f} | Exchange failsafe gone")
-                            except Exception: pass
+                            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                         self.save_state()
                     except Exception as _e: log.warning(f'Native SL +3.5pct-move failed: {_e}')
             # v9.4: Progressive profit lock — protect 50% of gains at 75% of TP
@@ -1329,7 +1326,7 @@ class Risk:
                                 _moved = await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
                                 if _moved is False and self.tg:
                                     try: self.tg.send(f"⚠️ NATIVE SL 75% LOCK MOVE FAILED {pos.pair} | SL ${pos.sl:.4f} | Exchange failsafe gone")
-                                    except Exception: pass
+                                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                                 self.save_state()
                             except Exception as _e: log.warning(f'Native SL PL75-move failed: {_e}')
                         # v14.6.4 AUDIT FIX: removed dead LEGACY PROFIT LOCKED commented send.
@@ -1351,13 +1348,13 @@ class Risk:
                             log.info(f"🔐 {pos.pair} {_label} → SL=${pos.sl:.6f}")
                             if self.tg:
                                 try: self.tg.send(f"🔐 {_label} {pos.pair} | SL locked at ${pos.sl:.6f}")
-                                except Exception: pass
+                                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                             if getattr(self, 'native_sl', None):
                                 try:
                                     _m = await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
                                     if _m is False and self.tg:
                                         try: self.tg.send(f"⚠️ {_label} native SL move failed {pos.pair}")
-                                        except Exception: pass
+                                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                                 except Exception as _e:
                                     log.warning(f"Group D SL move failed {pos.pair}: {_e}")
                             self.save_state()
@@ -1373,7 +1370,7 @@ class Risk:
                 # Detach native TP limit order from Binance so it doesn't force a sell
                 if getattr(self, "native_tp", None):
                     try: await asyncio.to_thread(self.native_tp.detach, pos)
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 
                 try:
                     _msg = f"""📈 <b>TP HIT — LETTING WINNER RUN</b>
@@ -1382,7 +1379,7 @@ class Risk:
 🚀 1% Trail Activated!"""
                     if hasattr(self, 'tg') and self.tg: getattr(self, 'tg').send(_msg)
                     elif 'tg' in globals(): tg.send(_msg)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 
                 if hasattr(self, 'save_state'): self.save_state()
 
@@ -1416,7 +1413,7 @@ class Risk:
                 log.info(f"🔒 {pos.pair} Step-Lock advanced to ${_opt_sl:.4f}")
                 try:
                     if hasattr(self, 'native_sl'): await asyncio.to_thread(self.native_sl.move, pos, pos.sl)  # v15.4 FIX (P3)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 _last_alert = getattr(pos, '_last_tg_sl', 0)
                 if (_opt_sl - _last_alert) / max(_last_alert, 0.0001) >= 0.005:
                     pos._last_tg_sl = _opt_sl
@@ -1425,7 +1422,7 @@ class Risk:
                         if hasattr(self, 'tg') and self.tg: getattr(self, 'tg').send(_msg)
                         elif hasattr(self, 'notifier') and self.notifier: getattr(self, 'notifier').send(_msg)
                         elif 'tg' in globals(): tg.send(_msg)
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 self.save_state()  # v15.6 FIX: moved inside if-block — was saving every cycle
                 
             # 4. Trail management — v14.7 DISABLED (chase ladder above handles ratcheting)
@@ -1440,7 +1437,7 @@ class Risk:
                     # v14.4: Cancel native TP — bot is closing via trail (price went higher than TP)
                     if getattr(self, "native_tp", None):
                         try: await asyncio.to_thread(self.native_tp.detach, pos)
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     to_close.append((pos, price, "TRAIL")); continue
 
             # 5. Regime shift exit — v9.1: exit ANY profitable position in TREND_DOWN
@@ -1562,7 +1559,7 @@ class Risk:
             if _TCA is not None:
                 try: _TCA.record_exit(pos, exit_price=price, reason=reason, pnl=net,
                                       high_seen=getattr(pos, "high", price))
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v15.2 #2 FIX: audit log exit decision
             _audit = getattr(getattr(self, '_bot_ref', None), '_audit', None)
             if _audit is not None:
@@ -1570,7 +1567,7 @@ class Risk:
                                 entry=pos.avg_entry, exit=price, pnl_usd=round(net, 4),
                                 synthesized=is_synthesized,
                                 tp_floor=getattr(pos, "tp_floor_locked", False))
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v11.2.8 FIX (May 4, 2026): guard fromisoformat against malformed entry_time.
             # check_exits() at line ~413 already wraps fromisoformat in try/except, but
             # _record_close didn't — a corrupted state file would crash mid-close: sell
@@ -1626,7 +1623,7 @@ class Risk:
                     "gap_fix": True,
                     "gap_reason": str(_rc_gap_err)[:120],
                 })
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 
     def _log_trade(self, action, pos, price, qty, size, fee, net=0,
@@ -1653,7 +1650,7 @@ class Risk:
         # without restart. Bot.__init__ links self.risk.journal = self.journal.
         if hasattr(self, 'journal') and self.journal is not None:
             try: self.journal.history.append(entry)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v9.0 FIX: Append-only JSONL — no corruption risk, no full file rewrite
         # v13.5.2 audit Fix #9: route through append_jsonl for size-bounded rotation.
         # Threshold raised to 50MB (vs default 5MB) because upgrade_engine.check_clean_days()
@@ -1717,7 +1714,7 @@ class Risk:
                     ts = datetime.fromisoformat(entry.get('ts','').replace('Z','+00:00'))
                     if ts >= recent_window:
                         had_recent = True; break
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             if not had_recent:
                 log.error(f"🚨 JOURNAL GAP DETECTED: {pair} removed from positions "
                           f"without journal entry in last 10s "

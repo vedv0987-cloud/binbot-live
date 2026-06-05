@@ -59,8 +59,7 @@ class PositionReconciler:
                 try:
                     tg.send(f"⚠️ <b>RECONCILER DOWN</b>\n"
                             f"Failed {self._consecutive_failures}x — check API connectivity")
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def _reconcile(self, positions, exchange, tg, cfg):
         """Core reconciliation logic."""
@@ -135,10 +134,8 @@ class PositionReconciler:
                                 "qty": round(actual, 6),
                                 "usd": round(usd_val, 2)
                             })
-                    except Exception:
-                        pass  # Can't price it — skip
-            except Exception:
-                pass  # Balance fetch failed — skip
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # Can't price it — skip
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")  # Balance fetch failed — skip
 
         # Report issues
         if ghosts:
@@ -189,7 +186,7 @@ class PositionReconciler:
                                 f"{ghost_msg}\n"
                                 f"✅ {_removed} position(s) removed from bot state\n"
                                 f"📝 Journal entries written (PnL=0, booked at entry)")
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             except Exception as _ge:
                 log.warning(f"Ghost auto-remove failed: {_ge}")
                 try:
@@ -197,7 +194,7 @@ class PositionReconciler:
                             f"Bot tracks coins that Binance doesn't have!\n"
                             f"{ghost_msg}\n"
                             f"⚠️ Manual review required")
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         if drifts:
             drift_msg = "\n".join(
@@ -210,8 +207,7 @@ class PositionReconciler:
                 tg.send(f"⚠️ <b>POSITION DRIFT</b>\n"
                         f"Bot qty differs from Binance by >{self.DRIFT_THRESHOLD*100:.0f}%\n"
                         f"{drift_msg}")
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         orphans = [o for o in orphans if o["asset"] != "BNB"]
         if orphans:
@@ -286,7 +282,7 @@ class PositionReconciler:
                                      f"(${total_orphan_usd:.2f}).\n"
                                      f"📝 Journal entries written.\n"
                                      f"🛡️ Drawdown Shield preserved (no reset).")
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 except Exception as e:
                     log.error(f"Auto-orphan fix failed: {e}")
 
@@ -300,8 +296,7 @@ class PositionReconciler:
                             f"{alert_msg}\n"
                             f"💡 May be from manual trades or failed position tracking\n"
                             f"<i>Next alert for same asset in 30min unless value changes ±25%</i>")
-                except Exception:
-                    pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         if not ghosts and not drifts and not orphans:
             log.debug("✅ Reconciliation OK — bot matches Binance")

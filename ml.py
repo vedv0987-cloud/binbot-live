@@ -1254,8 +1254,7 @@ class MLPredictor:
                 elif rng_pct > 0.5:
                     weights[i] = 1.5    # moderate signal
                 # else 1.0 base weight
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return weights
 
     def train(self, candles, ta):
@@ -1322,8 +1321,7 @@ class MLPredictor:
                             gmadl_w[k] = 2.0
                         elif rng_pct > 0.5:
                             gmadl_w[k] = 1.5
-                    except Exception:
-                        pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 sample_weights = base_weights * gmadl_w
                 log.info(f"🧠 GMADL weights applied (aligned) — mean={gmadl_w.mean():.2f} "
                          f"max={gmadl_w.max():.1f} high_conf={int((gmadl_w>=2.0).sum())}/{n_samples}")
@@ -1515,7 +1513,7 @@ class MLPredictor:
                         try:
                             self.model_selector.active[name] = False
                             log.warning(f"🔻 {name.upper()} auto-demoted (mean acc {np.mean(accs):.1%} > 85%, likely overfit)")
-                        except Exception: pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             self.last_train=time.time(); self._ready=True
             self._outlier.fit(np.array(features))
             log.info(f"🛡️ Outlier detector fitted on {len(features)} samples")
@@ -1565,7 +1563,7 @@ class MLPredictor:
                 old = sorted(glob.glob(os.path.join(_ml_dir, "ml_models_*.pkl")))[:-5]
                 for fp in old:
                     try: os.remove(fp)
-                    except Exception: pass
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 log.info(f"💾 Models saved: ml_models.pkl + ml_models_{ts}.pkl")
             except Exception as _e: log.debug(f"Suppressed [ml]: {_e}")
             log.info(f"🧠 ML trained | Acc:{self.accuracy:.1%} (MEAN) | Feats:{X_full.shape[1]} | Samples:{len(X_full)} | Stale:{self.staleness_factor():.0%}")
@@ -1696,11 +1694,11 @@ class MLPredictor:
             # v13.0: Apply StandardScaler if available (must match training normalization)
             if self._scaler is not None:
                 try: f_arr = self._scaler.transform(f_arr)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v12.1: Apply PCA transform if available
             if self._pca is not None:
                 try: f_arr = self._pca.transform(f_arr)
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             rf_p = self.model.predict_proba(f_arr)[0]
             rf_score = float(rf_p[1]) if len(rf_p)>=2 else 0.5
             # v14.6.5 AUDIT FIX (F4+F5): use MetaLearner weights and ModelSelector
@@ -1795,7 +1793,7 @@ class RLAgent:
                 if pred == 0: return 0.75   # SKIP
                 if pred == 2: return 1.20   # STRONG BUY
                 return 1.05                 # NORMAL BUY
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # Q-table fallback
         state=self._state_key(regime,trend,atr_pct,fg)
         q=self._get_q(state); best=int(np.argmax(q)); mx=max(q)
@@ -1859,8 +1857,7 @@ class RLAgent:
             from feature_flags import get as _ff
             if _ff("rl_per_position", False) and pair:
                 self._pos_states[pair] = state
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
     def _save(self):
         try: Path(self.save_path).write_text(json.dumps({
             "q_table":self.q_table,"epsilon":self.epsilon,

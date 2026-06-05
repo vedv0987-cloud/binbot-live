@@ -237,8 +237,7 @@ class CapitalTierManager:
             try:
                 self.exposure_guard.max_crypto_pct = exp
                 self.exposure_guard.warn_pct = exp * 0.85
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         prev = self._tier
         self._tier = tier
         log.info(f"🎚️ CAPITAL TIER {prev or 'init'}→{tier} (equity ${equity:.2f}): "
@@ -257,8 +256,7 @@ class CapitalTierManager:
                         f"🎚️ <b>NORMAL MODE</b> (equity ${equity:.2f} ≥ ${_thr:.0f})\n"
                         f"📦 Max positions: <b>{mp}</b>\n"
                         f"💲 Per-trade size: <b>{psz*100:.0f}%</b> | exposure {exp*100:.0f}%")
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
     def status(self) -> dict:
         return {"tier": self._tier,

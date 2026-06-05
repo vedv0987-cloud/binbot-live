@@ -40,8 +40,7 @@ def _load_env():
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k, v.strip().strip('"').strip("'"))
-    except Exception:
-        pass
+    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 
 def _tg(msg):
@@ -51,8 +50,7 @@ def _tg(msg):
     try:
         data = urllib.parse.urlencode({"chat_id": chat, "text": msg, "parse_mode": "HTML"}).encode()
         urllib.request.urlopen(f"https://api.telegram.org/bot{tok}/sendMessage", data=data, timeout=10)
-    except Exception:
-        pass
+    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 
 def _systemctl(action):
@@ -115,12 +113,11 @@ def main():
             try:
                 if RESTART_STATE.exists():
                     since_restart = time.time() - float(RESTART_STATE.read_text().strip() or 0)
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             if stale > STALE_SEC and since_restart > GRACE_SEC:
                 _tg(f"🐶 <b>WATCHDOG</b>: heartbeat stale {stale:.0f}s (&gt; {STALE_SEC}s) — restarting <code>{SERVICE}</code>")
                 try: RESTART_STATE.write_text(str(int(time.time())))
-                except Exception: pass
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 _systemctl("restart")
                 return
     except Exception as e:

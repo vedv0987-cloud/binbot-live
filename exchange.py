@@ -95,8 +95,7 @@ class Exchange:
                 loop.create_task(self._sync_time())
             except RuntimeError:
                 pass  # no running loop (called from a plain thread) — re-syncs at next init
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         params['timestamp'] = int(time.time() * 1000) + self._time_offset
         # v18.9.9 (audit H2): widen the recv window (default 5s) so minor VM clock drift
         # doesn't make Binance reject signed orders (-1021) — which would silently block exits.
@@ -339,8 +338,7 @@ class Exchange:
                 _fo = getattr(self, "_failover_mgr", None)
                 if _fo is not None:
                     _fo.report_binance_ok()
-            except Exception:
-                pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             _cs = [Candle(k[0]/1000, float(k[1]), float(k[2]),
                           float(k[3]), float(k[4]), float(k[5])) for k in raw]
             if _drop and len(_cs) > 1:
@@ -586,8 +584,7 @@ class Exchange:
                 if order_value < top_ask_depth * 0.3:
                     log.info(f"📐 TWAP skip {sym}: order ${order_value:.2f} < 30% depth")
                     return await self.buy(sym, qty)
-        except Exception:
-            pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         chunk_qty = qty / n_chunks
         total_filled = 0.0
         total_cost = 0.0
@@ -730,7 +727,7 @@ class Exchange:
             data = await self._public_get("/api/v3/ticker/bookTicker")
             if isinstance(data, list):
                 return {item["symbol"].upper(): {"b": float(item.get("bidPrice", 0)), "B": float(item.get("bidQty", 0)), "a": float(item.get("askPrice", 0)), "A": float(item.get("askQty", 0))} for item in data}
-        except Exception: pass
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         return {}
 
     # ──────────────────────────────────────────────────────────────
@@ -850,7 +847,7 @@ class LivePrices:
                 a = float(data["a"]); A = float(data["A"])
                 if self.on_book_ticker:
                     self.on_book_ticker(sym, b, B, a, A)
-            except Exception: pass
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             return
             
         # Handle @miniTicker (prices)

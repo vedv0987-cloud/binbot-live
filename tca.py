@@ -38,8 +38,7 @@ def _rotate(path: Path):
             if bak.exists():
                 bak.unlink()
             path.replace(bak)
-    except Exception:
-        pass
+    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 
 class TCALogger:
@@ -158,10 +157,8 @@ class TCALogger:
                             t = datetime.fromisoformat(ts).timestamp() if ts else 0
                             if t >= cutoff:
                                 events.append(e)
-                        except Exception:
-                            pass
-        except Exception:
-            pass
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         by_strat = defaultdict(lambda: {
             "entries": [], "exits": [], "wins": 0, "losses": 0
