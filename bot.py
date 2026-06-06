@@ -2837,24 +2837,30 @@ class ProBotV11:
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Market microstructure (medium weight)
-                    try: adjustments.append(("ls_ratio", _adj(self.long_short.get_boost(), 0.10)))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    try: adjustments.append(("ex_flow", _adj(self.exchange_flow.get_boost(sig.pair), 0.06)))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.long_short:
+                        try: adjustments.append(("ls_ratio", _adj(self.long_short.get_boost(), 0.10)))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.open_interest:
+                        try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.exchange_flow:
+                        try: adjustments.append(("ex_flow", _adj(self.exchange_flow.get_boost(sig.pair), 0.06)))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Supplementary modules (lower weight)
                     try: adjustments.append(("gecko_t", _adj(self.gecko_trending.get_boost(sig.pair), 0.04)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("gecko_m", _adj(self.gecko_movers.get_boost(sig.pair), 0.04)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    try: adjustments.append(("social", _adj(self.social_sentiment.get_boost(sig.pair), 0.03)))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    try: adjustments.append(("nlp", _adj(self.transformer_nlp.get_boost(), 0.03)))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    try: adjustments.append(("hash", _adj(self.hash_rate.get_boost(), 0.03)))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.social_sentiment:
+                        try: adjustments.append(("social", _adj(self.social_sentiment.get_boost(sig.pair), 0.03)))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.transformer_nlp:
+                        try: adjustments.append(("nlp", _adj(self.transformer_nlp.get_boost(), 0.03)))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.hash_rate:
+                        try: adjustments.append(("hash", _adj(self.hash_rate.get_boost(), 0.03)))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     # v12.0: Aggressor flow
                     try: adjustments.append(("aggflow", _adj(self.aggressor_flow.get_boost(sig.pair), 0.07)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
@@ -2910,16 +2916,17 @@ class ProBotV11:
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Monte Carlo risk penalty
-                    if self.monte_carlo.should_reduce_risk():
+                    if self.monte_carlo and self.monte_carlo.should_reduce_risk():
                         adjustments.append(("mc_risk", -0.04))
 
                     # v16.0.0: LSTM deep learning boost
-                    try:
-                        lstm_prob = self.lstm.predict(c5d)
-                        if lstm_prob != 0.5:  # 0.5 = neutral/unavailable
-                            lstm_adj = (lstm_prob - 0.5) * 0.20  # ±10% max
-                            adjustments.append(("lstm", lstm_adj))
-                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    if self.lstm:
+                        try:
+                            lstm_prob = self.lstm.predict(c5d)
+                            if lstm_prob != 0.5:  # 0.5 = neutral/unavailable
+                                lstm_adj = (lstm_prob - 0.5) * 0.20  # ±10% max
+                                adjustments.append(("lstm", lstm_adj))
+                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # v16.0.0: Token unlock confidence penalty
                     try:
