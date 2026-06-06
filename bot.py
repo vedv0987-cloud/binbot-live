@@ -6,8 +6,9 @@ import os, json, asyncio
 def _heal_memory():
     import time
     for fn in ["bot_state.json", "trade_history.json"]:
+        empty_val = "[]" if "history" in fn else "{}"
         if not os.path.exists(fn):
-            with open(fn, "w") as _f: _f.write("{}")
+            with open(fn, "w") as _f: _f.write(empty_val)
         else:
             try:
                 with open(fn, "r") as _f: json.load(_f)
@@ -16,7 +17,7 @@ def _heal_memory():
                 try:
                     os.rename(fn, corrupted_fn)
                 except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                with open(fn, "w") as _f: _f.write("{}")
+                with open(fn, "w") as _f: _f.write(empty_val)
 _heal_memory()
 import gc
 try:
@@ -222,7 +223,12 @@ class ProBotV11:
         self.native_sl._risk_ref = self
         # v14.6 FIX: recover any positions missing native SL (crash-during-BE-move recovery)
         import threading
-        threading.Timer(15.0, lambda: self.native_sl.recover_missing(self.risk.positions)).start()
+        def _safe_recover():
+            try:
+                self.native_sl.recover_missing(self.risk.positions)
+            except Exception as _e:
+                __import__("logging").getLogger("binbot").warning(f"Native SL recovery error: {_e}")
+        threading.Timer(15.0, _safe_recover).start()
         self.native_tp = NativeTPManager(self.ex, cfg)  # v14.4 exchange-side TP backup
         self.risk.native_sl = self.native_sl  # v13.6 wire into Risk
         self.pending:Dict[str,PendingBuy]={}
@@ -2862,7 +2868,8 @@ class ProBotV11:
                 log.info("⏸  Bot is PAUSED — skipping new entry analysis. Send /resume to restart.")
             return
 
-        for sig in ranked[:3]:  # v7: Allow 2 signals per cycle
+        _valid_ranked = [s for s in ranked if getattr(s, 'conf', 0) > 0]
+        for sig in _valid_ranked[:3]:  # v7: Allow 2 signals per cycle
             # v18.9.9 (audit M2): count pending (unfilled) maker orders toward the position cap
             # so one fast cycle can't push live positions past MAX_POSITIONS via async fills.
             if len(self.risk.positions) + len(self._limit_orders) >= self.cfg.MAX_POSITIONS:

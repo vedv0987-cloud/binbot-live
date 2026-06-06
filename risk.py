@@ -209,7 +209,8 @@ class Risk:
 
     def paused(self):
         self._reset()
-        if self.cfg.max_daily_loss > 0 and self.daily_pnl <= -self.cfg.max_daily_loss: return True,"DailyLoss"
+        _max_loss = self.cfg.TOTAL_CAPITAL * getattr(self.cfg, 'MAX_DAILY_LOSS_PCT', 0.05)
+        if _max_loss > 0 and self.daily_pnl <= -_max_loss: return True,"DailyLoss"
         if self.pause_until and datetime.now(timezone.utc)<self.pause_until: return True,"Streak"
         # v10.0: PEAK-EQUITY drawdown (was initial-cap anchor — broke on TOTAL_CAPITAL changes)
         # Track running high-water mark; DD = drop from peak, not from boot value.
@@ -1439,20 +1440,7 @@ class Risk:
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                 self.save_state()  # v15.6 FIX: moved inside if-block — was saving every cycle
                 
-            # 4. Trail management — v14.7 DISABLED (chase ladder above handles ratcheting)
-            
-                td = pos.avg_entry * 0.010  # Strict 1% trailing gap
-                new_trail = price - td
-                if new_trail > pos.trail_stop:
-                    pos.trail_stop = new_trail
-                    log.info(f"📈 {pos.pair} trail moved → ${pos.trail_stop:.4f}")
-                    self.save_state()  # v11.2.20 FIX: persist trail stop advance
-                if price <= pos.trail_stop:
-                    # v14.4: Cancel native TP — bot is closing via trail (price went higher than TP)
-                    if getattr(self, "native_tp", None):
-                        try: await asyncio.to_thread(self.native_tp.detach, pos)
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    to_close.append((pos, price, "TRAIL")); continue
+
 
             # 5. Regime shift exit — v9.1: exit ANY profitable position in TREND_DOWN
             if ctx.regime == "TREND_DOWN" and pct > 0.020:

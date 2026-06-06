@@ -269,7 +269,7 @@ class DrawdownShield:
             # Discrepancy too large — saved_peak is contaminated. Use computed.
             old_peak = saved_peak
             self.peak = floor_peak
-            try: log.warning(
+            try: log.info(
                 f"\U0001f6e1\ufe0f  DD shield AUTO-FIX: saved peak ${old_peak:.2f} "
                 f"contaminated (true peak from journal: ${true_peak:.2f}, "
                 f"current cap ${self.capital:.2f}). Using ${floor_peak:.2f}. "

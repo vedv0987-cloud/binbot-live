@@ -634,7 +634,7 @@ class Exchange:
         """Market sell with partial-fill detection."""
         # Auto-adjust to actual balance
         try:
-            asset = sym.replace("USDT", "")
+            asset = sym[:-4] if sym.endswith("USDT") else sym.replace("USDT", "")
             bal_data = await self.get_asset_balance(asset)
             actual = float(bal_data.get("free", 0))
             if actual > 0 and actual < qty:
