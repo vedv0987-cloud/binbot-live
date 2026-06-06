@@ -1034,12 +1034,13 @@ class ProBotV11:
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         # v16.0.0: Train LSTM deep learning model
-        try:
-            btc_candles = await self.ex.klines("BTCUSDT", "5m", 2000)
-            if btc_candles and len(btc_candles) >= 200:
-                self.lstm.train(btc_candles)
-        except Exception as _le:
-            log.debug(f"LSTM startup train: {_le}")
+        if self.lstm:
+            try:
+                btc_candles = await self.ex.klines("BTCUSDT", "5m", 2000)
+                if btc_candles and len(btc_candles) >= 200:
+                    self.lstm.train(btc_candles)
+            except Exception as _le:
+                log.debug(f"LSTM startup train: {_le}")
 
         # v16.0.0: Initialize token unlock tracker + economic calendar
         try: self.token_unlock.update()
@@ -1058,10 +1059,11 @@ class ProBotV11:
         except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         # v8.3: Train LSTM
         # v8.3: Run Monte Carlo on historical trades
-        try:
-            past_pnls=[t.get("pnl",0) for t in self.risk.trades if "pnl" in t]
-            if len(past_pnls)>=10: self.monte_carlo.run(past_pnls, self.cfg.TOTAL_CAPITAL)
-        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+        if self.monte_carlo:
+            try:
+                past_pnls=[t.get("pnl",0) for t in self.risk.trades if "pnl" in t]
+                if len(past_pnls)>=10: self.monte_carlo.run(past_pnls, self.cfg.TOTAL_CAPITAL)
+            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
 
         # v11.2.16: HyperOpt timestamp gate
@@ -1729,19 +1731,23 @@ class ProBotV11:
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.gecko_movers.refresh)
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-            try:
-                tickers_24h = await self.ex.get_ticker()
-                await asyncio.to_thread(self.exchange_flow.refresh, tickers_24h)
-            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            if self.exchange_flow:
+                try:
+                    tickers_24h = await self.ex.get_ticker()
+                    await asyncio.to_thread(self.exchange_flow.refresh, tickers_24h)
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v11.2.10: Update new intelligence modules
-            try: await asyncio.to_thread(self.long_short.update)
-            except Exception as e: log.debug(f"LongShort refresh: {e}")
-            try:
-                btc_p = tickers.get("BTCUSDT", 0)
-                await asyncio.to_thread(self.open_interest.update, btc_p)
-            except Exception as e: log.debug(f"OI refresh: {e}")
-            try: await asyncio.to_thread(self.hash_rate.update)
-            except Exception as e: log.debug(f"HashRate refresh: {e}")
+            if self.long_short:
+                try: await asyncio.to_thread(self.long_short.update)
+                except Exception as e: log.debug(f"LongShort refresh: {e}")
+            if self.open_interest:
+                try:
+                    btc_p = tickers.get("BTCUSDT", 0)
+                    await asyncio.to_thread(self.open_interest.update, btc_p)
+                except Exception as e: log.debug(f"OI refresh: {e}")
+            if self.hash_rate:
+                try: await asyncio.to_thread(self.hash_rate.update)
+                except Exception as e: log.debug(f"HashRate refresh: {e}")
             # v12.0: Aggressor flow tracker
             try: await asyncio.to_thread(self.aggressor_flow.update, ["BTCUSDT","ETHUSDT","SOLUSDT"])
             except Exception as e: log.debug(f"AggressorFlow refresh: {e}")
@@ -1789,15 +1795,18 @@ class ProBotV11:
             try: await asyncio.to_thread(self.econ_calendar.update)
             except Exception as e: log.debug(f"EconCalendar refresh: {e}")
         if self.cycles % 60 == 0:  # Every 15 min
-            try: self.meta_learner.update_weights()
-            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-            try: self.model_selector.evaluate()
-            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            if self.meta_learner:
+                try: self.meta_learner.update_weights()
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            if self.model_selector:
+                try: self.model_selector.evaluate()
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             # v8.4: Social sentiment (slower refresh — 15min)
-            try:
-                coins = [p["n"] for p in self.cfg.PAIRS[:10]]
-                await asyncio.to_thread(self.social_sentiment.refresh, coins)
-            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            if self.social_sentiment:
+                try:
+                    coins = [p["n"] for p in self.cfg.PAIRS[:10]]
+                    await asyncio.to_thread(self.social_sentiment.refresh, coins)
+                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.dxy.update)
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.options.update)
