@@ -3118,7 +3118,7 @@ class ProBotV11:
                 result=await self.ex.buy_limit(sig.pair,_qty,sig.price*(1-self.cfg.LIMIT_OFFSET_PCT/100))
                 if "error" not in result:
                     if result.get("status")=="FILLED":
-                        self.risk.open_pos(sig,size,result,ctx,self.tg)
+                        self.risk.open_pos(sig,_size_jit,result,ctx,self.tg)  # v18.9.11 FIX C2: use actual jittered size
                         log.info(f"✅ MAKER FILL {sig.pair} (instant)")
                         # v13.2: RL entry for limit-buy instant fill
                         pass
@@ -3140,7 +3140,7 @@ class ProBotV11:
                     log.info(f"📉 {sig.pair} MAKER REJECT (post_only), MARKET fallback")
                     result = await self.ex.buy(sig.pair, _qty)
                     if "error" not in result:
-                        self.risk.open_pos(sig, size, result, ctx, self.tg)
+                        self.risk.open_pos(sig, _size_jit, result, ctx, self.tg)  # v18.9.11 FIX C2: use actual jittered size
                         log.info(f"✅ MARKET FALLBACK {sig.pair} filled")
                         pass
                     else:
@@ -3154,14 +3154,15 @@ class ProBotV11:
                 _final_qty = _final_size / sig.price
                 # v16.0: Smart Execution Engine TWAP routing
                 log.info(f"📊 {sig.pair} executing order (size ${_final_size:.2f})")
-                n_chunks = max(1, min(10, int(_final_size / 6.0)))  # FIX: ensure min  per chunk
+                _min_chunk = max(self.cfg.MIN_TRADE, self.ex.get_min_notional(sig.pair))  # v18.9.11 FIX C3: per-pair min notional
+                n_chunks = max(1, min(10, int(_final_size / _min_chunk)))
                 if n_chunks > 1:
                     result = await self.exec_algo.twap_buy(sig.pair, _final_qty, n_chunks=n_chunks)
                 else:
                     result = await self.ex.buy(sig.pair, _final_qty)
                     
                 if "error" not in result:
-                    self.risk.open_pos(sig,size,result,ctx,self.tg)
+                    self.risk.open_pos(sig,_final_size,result,ctx,self.tg)  # v18.9.11 FIX C2: use actual jittered size
                     # v13.2: Wire RL entry so reward() has correct state context
                     pass
                     _order_ms = (time.time() - _order_t0) * 1000
@@ -3180,7 +3181,7 @@ class ProBotV11:
         )
         if _filled:
             self._limit_orders.pop(oid, None)
-            self.risk.open_pos(sig, size, _filled, ctx, self.tg)
+            self.risk.open_pos(sig, _size_jit, _filled, ctx, self.tg)  # v18.9.11 FIX C2: use actual jittered size
             log.info(f"✅ MAKER FILL {sig.pair} (delayed)")
             pass
         else:
@@ -3188,14 +3189,14 @@ class ProBotV11:
             _race = await self._cancel_and_check(sig.pair, oid)
             self._limit_orders.pop(oid, None)
             if _race:
-                self.risk.open_pos(sig, size, _race, ctx, self.tg)
+                self.risk.open_pos(sig, _size_jit, _race, ctx, self.tg)  # v18.9.11 FIX C2: use actual jittered size
                 log.info(f"✅ MAKER RACE FILL {sig.pair}")
                 pass
             else:
                 log.info(f"📉 {sig.pair} MAKER TIMEOUT, MARKET fallback")
                 result = await self.ex.buy(sig.pair, _qty)
                 if "error" not in result:
-                    self.risk.open_pos(sig, size, result, ctx, self.tg)
+                    self.risk.open_pos(sig, _size_jit, result, ctx, self.tg)  # v18.9.11 FIX C2: use actual jittered size
                     log.info(f"✅ MARKET FALLBACK {sig.pair} filled")
                     pass
                 else:

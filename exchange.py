@@ -302,9 +302,10 @@ class Exchange:
                 if c.h < c.l: continue
                 if c.l > c.c or c.l > c.o: continue
                 if c.h < c.c or c.h < c.o: continue
-                if c.c > 0 and (c.h - c.l) / c.c > 0.25:
-                    c.h = max(c.o, c.c)
-                    c.l = min(c.o, c.c)
+                # v18.9.11 FIX M2: removed candle h/l mutation. Was clamping >25%
+                # range candles to open/close, destroying real ATR data needed for
+                # SL/trailing calculations. Legitimate volatile alts (INJ, OP) can
+                # have 25%+ wicks. Corrupt candles already caught by checks above.
                 if c.v < 0: continue
                 valid.append(c)
             except Exception:

@@ -638,6 +638,20 @@ class Risk:
             # USE_LIMIT is False (taker). So the USE_LIMIT flag is the correct tiebreaker here.
             fee_rate = self.cfg.MAKER_FEE if self.cfg.USE_LIMIT else self.cfg.TAKER_FEE
         qty=size/sig.price; fee=size*fee_rate
+        # v18.9.11 AUDIT FIX C1: when Binance response lacks fills (e.g. LIMIT_MAKER),
+        # use executedQty + cummulativeQuoteQty for accurate position tracking.
+        # Without this, qty/size are estimated from signal price, not actual fill.
+        if isinstance(order, dict) and not order.get("fills"):
+            _eq = float(order.get("executedQty", 0) or 0)
+            _cqq = float(order.get("cummulativeQuoteQty", 0) or 0)
+            if _eq > 0:
+                qty = _eq
+                if _cqq > 0:
+                    sig.price = _cqq / _eq
+                    size = _cqq
+                else:
+                    size = qty * sig.price
+                fee = size * fee_rate
         # v9.6 FIX: capture original SL distance BEFORE overwriting sig.price with fill price
         orig_signal_price = sig.price
         orig_sl_dist = abs(orig_signal_price - sig.sl) if sig.sl else 0
@@ -881,7 +895,7 @@ class Risk:
                         # v11.2.20 FIX: scale-out 0% runner bug — if levels sum to 100%
                         # pos.qty hits 0, final exit records $0 PnL + Binance MIN_NOTIONAL error
                         remaining = pos.qty - sq
-                        if remaining < pos.qty * 0.05 and remaining > 0:  # must leave ≥5% runner, allow final sell
+                        if remaining < pos.qty * 0.05:  # v18.9.11 FIX M6: removed `> 0` to catch remaining=0 (100% scale-out)
                             to_close.append((pos, price, "SCALE_DUST_SWEEP"))
                             continue
                         if sq>0:
@@ -1447,7 +1461,13 @@ class Risk:
             # 6. Time exit — but only if in loss. If in profit, let it ride
             # v9.1: Near-TP exception + safe datetime parsing
             try:
-                entry=datetime.fromisoformat(pos.entry_time)
+                # v18.9.11 AUDIT FIX H2: handle 'Z' suffix and missing timezone.
+                # Without this, naive-vs-aware comparison raises TypeError, silently
+                # skipping time-exit and leaving stagnant losing trades open forever.
+                _et_str = pos.entry_time.replace('Z', '+00:00')
+                if '+' not in _et_str:
+                    _et_str += '+00:00'
+                entry=datetime.fromisoformat(_et_str)
             except Exception:
                 continue  # Skip time check if entry_time is malformed
             mins=(datetime.now(timezone.utc)-entry).total_seconds()/60
