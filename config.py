@@ -80,12 +80,12 @@ class Config:
     # ADOPTED as a managed position instead of being sold off — so it gets SL/TP management
     # and is never stranded. Cost basis = current market price (the real entry is unknown).
     # Only adopts coins worth >= AUTO_ADOPT_MIN_USD. Set False to revert to sell-on-sight.
-    AUTO_ADOPT_ORPHANS: bool = True
+    AUTO_ADOPT_ORPHANS: bool = False  # v18.9.13: user holds coins manually in this account — bot must NOT adopt them
     AUTO_ADOPT_MIN_USD: float = 5.0     # ignore dust below this (also Binance min-notional)
     # v18.9.12: the periodic reconciler auto-SELLS any untracked non-USDT coin to USDT (so a
     # USDT bot can use it). Set False to only ALERT and leave the coin for you to convert
     # manually. (Only ever sells coins that actually fill — see reconciler.py.)
-    ORPHAN_AUTO_SELL: bool = True
+    ORPHAN_AUTO_SELL: bool = False    # v18.9.13: user trades manually here — only ALERT on untracked coins, never sell them
     # v18.9.13: BTC crash guard. The old logic panic-SOLD everything at a 5% BTC drop, which
     # churned (sell-all -> rebuy -> sell-all). This version only PAUSES new entries when BTC is
     # down >= BTC_CRASH_PCT in 24h (no panic-sell -> no churn); existing positions ride their stops.

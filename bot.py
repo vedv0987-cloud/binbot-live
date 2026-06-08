@@ -707,21 +707,25 @@ class ProBotV11:
         # BNB) so the startup capital + DD-peak anchor reflect the FULL wallet — the same
         # blind spot the per-cycle equity calc had, where an uncounted BNB balance
         # manufactured a phantom drawdown.
-        try:
-            _acc0 = await self.ex.get_account()
-            _tracked0 = {p.pair.replace("USDT", "") for p in self.risk.positions}
-            for _b0 in (_acc0 or {}).get("balances", []):
-                _a0 = _b0.get("asset", "")
-                if _a0 == "USDT" or _a0 in _tracked0:
-                    continue
-                _amt0 = float(_b0.get("free", 0) or 0) + float(_b0.get("locked", 0) or 0)
-                if _amt0 <= 0:
-                    continue
-                try: _px0 = float((await self.ex.get_symbol_ticker(_a0 + "USDT")).get("price", 0) or 0)
-                except Exception: _px0 = 0.0
-                actual_bal += _amt0 * _px0
-        except Exception as _b0e:
-            log.debug(f"startup untracked-asset valuation skipped: {_b0e}")
+        # v18.9.13: only fold untracked coin value into capital when the bot ADOPTS orphans.
+        # If AUTO_ADOPT_ORPHANS is off (user holds coins manually in this account), the bot
+        # ignores them — so they must NOT inflate its trading capital / tier / risk budget.
+        if getattr(self.cfg, 'AUTO_ADOPT_ORPHANS', True):
+            try:
+                _acc0 = await self.ex.get_account()
+                _tracked0 = {p.pair.replace("USDT", "") for p in self.risk.positions}
+                for _b0 in (_acc0 or {}).get("balances", []):
+                    _a0 = _b0.get("asset", "")
+                    if _a0 == "USDT" or _a0 in _tracked0:
+                        continue
+                    _amt0 = float(_b0.get("free", 0) or 0) + float(_b0.get("locked", 0) or 0)
+                    if _amt0 <= 0:
+                        continue
+                    try: _px0 = float((await self.ex.get_symbol_ticker(_a0 + "USDT")).get("price", 0) or 0)
+                    except Exception: _px0 = 0.0
+                    actual_bal += _amt0 * _px0
+            except Exception as _b0e:
+                log.debug(f"startup untracked-asset valuation skipped: {_b0e}")
         if actual_bal > 5 and not self.cfg.FIXED_CAPITAL_MODE:
             self.cfg.TOTAL_CAPITAL = round(actual_bal, 2)
             log.info(f"  💰 Auto-compound: Capital set to ${self.cfg.TOTAL_CAPITAL} from balance")
