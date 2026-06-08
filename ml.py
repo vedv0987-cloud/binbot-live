@@ -1,8 +1,11 @@
 # BinBot v11 — ml.py
 # All ML models: MTF, LSTM, RL, Transformer, MetaLearner, DXY, Whale,
 # MultiEx, Options, CoinGecko, Social, ExchangeFlow, ModelSelector, Dashboard
-import time, json, os, logging, math, urllib.request
+import time, json, os, logging, math, urllib.request, warnings
 import requests as req
+# v18.9.14: silence the cosmetic sklearn/lightgbm warning emitted when predict() is called with
+# a numpy array while the model was fit with named features (no effect on predictions).
+warnings.filterwarnings("ignore", message=r".*does not have valid feature names.*")
 from datetime import datetime, timezone
 from pathlib import Path
 try:

@@ -726,11 +726,16 @@ class ProBotV11:
                     actual_bal += _amt0 * _px0
             except Exception as _b0e:
                 log.debug(f"startup untracked-asset valuation skipped: {_b0e}")
-        if actual_bal > 5 and not self.cfg.FIXED_CAPITAL_MODE:
+        if self.cfg.FIXED_CAPITAL_MODE:
+            log.info(f"  💰 FIXED_CAPITAL_MODE: keeping ${self.cfg.TOTAL_CAPITAL} (wallet ${actual_bal:.2f})")
+        elif actual_bal > 5:
             self.cfg.TOTAL_CAPITAL = round(actual_bal, 2)
             log.info(f"  💰 Auto-compound: Capital set to ${self.cfg.TOTAL_CAPITAL} from balance")
-        elif self.cfg.FIXED_CAPITAL_MODE:
-            log.info(f"  💰 FIXED_CAPITAL_MODE: keeping ${self.cfg.TOTAL_CAPITAL} (wallet ${actual_bal:.2f})")
+        elif actual_bal < self.cfg.TOTAL_CAPITAL:
+            # v18.9.14: dust/withdrawn — show the REAL balance instead of a stale higher number
+            # left in state (trading is blocked by MIN_TRADE at this level anyway, so no bad sizing).
+            self.cfg.TOTAL_CAPITAL = round(actual_bal, 2)
+            log.info(f"  💰 Capital reflects real balance ${self.cfg.TOTAL_CAPITAL} (below $5 — idle until funded)")
         # v18.8.6 FIX: re-anchor the DD-shield to REAL wallet equity on a STATEFUL restart.
         # __init__ built DrawdownShield(cfg.TOTAL_CAPITAL) with the config-default ($45.65)
         # and set_peak() floored the peak there (via _compute_true_peak_from_journal, whose
@@ -799,7 +804,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.13 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor (see feature-health table below)")
+        log.info("  🚀 BINBOT V18.9.14 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -868,7 +873,7 @@ class ProBotV11:
         log.info(f"  Pairs: {len(self.cfg.PAIRS)} | Max {self.cfg.MAX_DAILY_TRADES}/day | Scan: {self.cfg.SCAN_SEC}s")
         log.info("━"*70)
 
-        self.tg.send(f"🚀 <b>BinBot V18.9.13 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
+        self.tg.send(f"🚀 <b>BinBot V18.9.14 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
 
         # v8.3: Sync with Binance — sell ghost coins + cancel orders
         # v8.4 FIX: Only touch assets from PAIRS list — don't sell unrelated holdings
@@ -3257,7 +3262,7 @@ class ProBotV11:
         self.risk.save_state(self.grid.pnl,self.grid.trades,
                              self.hyperopt.best_params if self.hyperopt else None)
         self.ws.stop()
-        self.tg.send(f"🛑 <b>BinBot V18.9.13 GodMode stopped</b>")  # version string
+        self.tg.send(f"🛑 <b>BinBot V18.9.14 GodMode stopped</b>")  # version string
         # v13.5.5: stop dashboard cleanly
         try:
             if getattr(self, "_dashboard", None):
