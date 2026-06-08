@@ -87,8 +87,8 @@ straightforward (no schema changes, no model retrains needed). Run
 audit_wallet.py before AND after deploy to confirm wallet state. The
 .feature_flags.json migration in config.py is automatic and safe."""
 
-__version__ = "18.9.16"
-__engine__ = ("V18.9.16 GodMode — REAL-MONEY ONLY (no paper). Auto capital-tiers by live "
+__version__ = "18.9.17"
+__engine__ = ("V18.9.17 GodMode — REAL-MONEY ONLY (no paper). Auto capital-tiers by live "
               "balance (<$50 → 1 pos/90%, ≥$50 → 2 pos/33%), WYCKOFF BEAR filter, Telegram "
               "anti-spam dedup. On the v18.7.1 audit-hardened base: ML + intel scoring ON, "
               "FOMC/unlock blocks live, fee-accurate accounting, WS self-heal, feature-health.")

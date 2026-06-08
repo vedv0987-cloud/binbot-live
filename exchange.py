@@ -543,7 +543,21 @@ class Exchange:
             })
             log.info(f"✅ BUY {sym} Qty:{qty} ID:{o.get('orderId')}")
             return o
-        return await self._retry(_do_buy)
+        _r = await self._retry(_do_buy)
+        # v18.9.17 (audit M2): partial-fill detection on market BUYs (mirrors sell()). open_pos
+        # already re-derives qty from fills, so this only WARNS so a thin-market partial buy is
+        # visible rather than silent. Lightweight — no extra API call.
+        if isinstance(_r, dict) and "error" not in _r:
+            try:
+                _ex = float(_r.get("executedQty", 0) or 0)
+                _orig = float(_r.get("origQty", qty) or qty)
+                _status = (_r.get("status") or "").upper()
+                if _orig > 0 and _ex < _orig * 0.99 and _status not in ("FILLED",):
+                    log.warning(f"⚠️ PARTIAL BUY {sym}: executed {_ex} of {_orig} (status={_status}) — "
+                                f"position will track the real filled qty")
+            except Exception as _pe:
+                log.debug(f"buy partial-fill check {sym}: {_pe}")
+        return _r
 
     async def buy_limit(self, sym, qty, price, post_only=True):
         """v14.6.2: post-only LIMIT_MAKER — guarantees maker fee."""
