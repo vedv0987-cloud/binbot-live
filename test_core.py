@@ -903,7 +903,7 @@ class TestConfigHardening(unittest.TestCase):
         self.assertGreaterEqual(c.MIN_RR, 1.3, "MIN_RR should clear taker round-trip")
         self.assertTrue(c.DROP_UNCLOSED_CANDLE, "repaint guard should default on")
         # The real loss bound is the per-trade RISK budget (not the stop width), so it must stay capped.
-        self.assertLessEqual(c.SMALL_TIER_RISK_PCT, 0.03, "small-tier risk budget must stay bounded")
+        self.assertLessEqual(c.SMALL_TIER_RISK_PCT, 0.05, "small-tier risk budget must stay within validate bound")
 
     def test_validate_flags_bad_tier_and_sl(self):
         from config import Config

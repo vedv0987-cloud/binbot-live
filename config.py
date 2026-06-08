@@ -63,13 +63,13 @@ class Config:
     CAPITAL_TIER_ENABLED: bool = True
     SMALL_TIER_USD: float = 100.0       # v18.8: below $100 → 1 concentrated position (was $50)
     SMALL_TIER_MAX_POS: int = 1         # below $100: max 1 position
-    SMALL_TIER_SIZE_PCT: float = 0.85   # v18.9.10: 85% per trade (user choice — small acct, 1 position, concentrate to grow). Risk still capped by SMALL_TIER_RISK_PCT below.
-    SMALL_TIER_EXPOSURE: float = 0.85   # v18.9.10: match the 85% per-trade size (1 position max)
+    SMALL_TIER_SIZE_PCT: float = 0.95   # v18.9.18: user choice — 95% per trade (small acct, 1 position, concentrate to grow)
+    SMALL_TIER_EXPOSURE: float = 0.95   # v18.9.18: match 95% per-trade size
     # v18.9.10: small-account per-trade risk budget. Because small balances run only ONE
     # position, they may concentrate up to SMALL_TIER_SIZE_PCT — but risk-normalize uses THIS
     # (slightly above the normal 2%) as the hard ceiling on a single trade's loss, so even at
     # 85% size the worst-case stop-out is ~2.5% of equity (and the 5% SL ceiling bounds slip).
-    SMALL_TIER_RISK_PCT: float = 0.025
+    SMALL_TIER_RISK_PCT: float = 0.05   # v18.9.18: raised so 95% actually deploys at the wider stop (worst-case ~5% loss/trade = daily cap)
     NORMAL_MAX_POS: int = 2             # max positions at/above SMALL_TIER_USD (current setting)
     NORMAL_SIZE_PCT: float = 0.3333     # per-trade fraction at/above SMALL_TIER_USD (current)
     NORMAL_EXPOSURE: float = 0.75       # max exposure at/above SMALL_TIER_USD (current)
