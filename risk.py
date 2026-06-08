@@ -422,7 +422,9 @@ class Risk:
         # open_pos will actually place. Hard ceiling 10%.
         # v13.5.2 audit Fix #6: floor raised 0.5%→3% to match strategies.py:304.
         # v14.6.2: Group D uses wider 4% SL floor.
-        _sl_floor = self.cfg.GROUP_D_SL_FLOOR if getattr(sig, "group", "A") == "D" else 0.03
+        # v18.9.16: floor now follows STOP_LOSS_PCT (config) instead of a hardcoded 3%, so
+        # widening the stop in config actually gives trades more room before stopping out.
+        _sl_floor = self.cfg.GROUP_D_SL_FLOOR if getattr(sig, "group", "A") == "D" else getattr(self.cfg, 'STOP_LOSS_PCT', 0.03)
         capped_sl_pct = max(min(sl_pct, getattr(self.cfg, 'MAX_SL_PCT', 0.10)), _sl_floor)
         if capped_sl_pct != sl_pct:
             old_sl = sig.sl

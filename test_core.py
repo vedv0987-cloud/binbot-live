@@ -896,11 +896,13 @@ class TestConfigHardening(unittest.TestCase):
     def test_safe_defaults(self):
         from config import Config
         c = Config()
-        self.assertLessEqual(c.MAX_SL_PCT, 0.05, "SL ceiling should be tightened")
+        # v18.9.16: SL ceiling stays within a SANE range (wider stops are OK — risk-normalize
+        # caps the dollar loss regardless of stop width, so the size shrinks for a wide stop).
+        self.assertLessEqual(c.MAX_SL_PCT, 0.10, "SL ceiling should stay within a sane range")
+        self.assertGreaterEqual(c.MAX_SL_PCT, c.STOP_LOSS_PCT, "ceiling must be >= floor")
         self.assertGreaterEqual(c.MIN_RR, 1.3, "MIN_RR should clear taker round-trip")
         self.assertTrue(c.DROP_UNCLOSED_CANDLE, "repaint guard should default on")
-        # v18.9.10: small-tier may concentrate per trade, but the single-trade RISK budget
-        # must stay hard-capped (this is what actually bounds the loss, not the size %).
+        # The real loss bound is the per-trade RISK budget (not the stop width), so it must stay capped.
         self.assertLessEqual(c.SMALL_TIER_RISK_PCT, 0.03, "small-tier risk budget must stay bounded")
 
     def test_validate_flags_bad_tier_and_sl(self):

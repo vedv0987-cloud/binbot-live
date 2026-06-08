@@ -34,7 +34,7 @@ class Config:
     # v18.9.6: per-trade SL ceiling + risk-normalized sizing. With RISK_NORMALIZE_SIZE on,
     # a wider/slipped stop SHRINKS the position so dollar risk never exceeds RISK_PCT of
     # capital (was: size fixed at ~33% regardless of SL width → real risk floated to ~3.3%).
-    MAX_SL_PCT: float = 0.05
+    MAX_SL_PCT: float = 0.07
     RISK_NORMALIZE_SIZE: bool = True
     # v18.9.9: signed-request recv window (ms) + per-entry liquidity floor (audit fixes)
     RECV_WINDOW_MS: int = 10000
@@ -609,7 +609,7 @@ class Config:
     EXPOSURE_GUARD_ENABLED: bool = True
     EXPOSURE_WARN_PCT: float = 0.85
 
-    STOP_LOSS_PCT: float = 0.03
+    STOP_LOSS_PCT: float = 0.045  # v18.9.16: widened 3%->4.5% so normal dips don't stop you out before a recovery (risk-normalize keeps $ loss the same)
 
     # ══════════════════════════════════════════════════════════════════════════
     # v18.5 AUDIT REMEDIATION FLAGS
