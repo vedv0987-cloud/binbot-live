@@ -82,6 +82,10 @@ class Config:
     # Only adopts coins worth >= AUTO_ADOPT_MIN_USD. Set False to revert to sell-on-sight.
     AUTO_ADOPT_ORPHANS: bool = True
     AUTO_ADOPT_MIN_USD: float = 5.0     # ignore dust below this (also Binance min-notional)
+    # v18.9.12: the periodic reconciler auto-SELLS any untracked non-USDT coin to USDT (so a
+    # USDT bot can use it). Set False to only ALERT and leave the coin for you to convert
+    # manually. (Only ever sells coins that actually fill — see reconciler.py.)
+    ORPHAN_AUTO_SELL: bool = True
 
     MIN_TRADE: float = 5.5  # v15.4 FIX: 10% buffer above Binance $5 MIN_NOTIONAL
     TAKER_FEE: float = 0.00075  # v14.6.2: BNB discount 0.075%

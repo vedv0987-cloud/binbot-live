@@ -249,25 +249,37 @@ class PositionReconciler:
                 import os, json, subprocess
                 from datetime import datetime, timezone as _tz2
                 _journal_path2 = os.path.join(os.path.dirname(__file__), 'trades_v9.jsonl')
-                try:
+                # v18.9.12 BUGFIX: the "ORPHAN AUTO-FIXED: Sold N (${X})" alert + journal entry
+                # previously fired for EVERY detected orphan regardless of whether the SELL
+                # actually executed. A failed sell (e.g. a still-settling deposit whose balance
+                # isn't sellable yet) was falsely reported as "sold $X" while the coin stayed in
+                # the wallet and no trade existed. Now only coins whose SELL actually FILLED are
+                # counted / journaled / reported; the rest are honestly flagged as still-untracked.
+                _sold = []
+                if getattr(cfg, 'ORPHAN_AUTO_SELL', True):
                     for o in asset_to_alert:
                         sym = f"{o['asset']}USDT"
-                        log.warning(f"🧹 Auto-selling ORPHAN {sym} ({o['qty']} qty)...")
                         try:
                             _qty = exchange.rnd(sym, o['qty'])
-                            if _qty > 0:
-                                exchange.cl.create_order(symbol=sym, side='SELL', type='MARKET', quantity=f"{_qty:.8f}")
-                            # Write journal entry for the orphan sell
+                            if _qty <= 0:
+                                log.info(f"ORPHAN {sym}: qty rounds to 0 — skip"); continue
+                            if o['usd'] < 5.0:
+                                log.info(f"ORPHAN {sym}: ${o['usd']:.2f} < $5 min-notional — skip"); continue
+                            log.warning(f"🧹 Auto-selling ORPHAN {sym} ({_qty} qty)...")
+                            _res = exchange.cl.create_order(symbol=sym, side='SELL', type='MARKET',
+                                                            quantity=f"{_qty:.8f}")
+                            _filled = isinstance(_res, dict) and (
+                                (_res.get('status') == 'FILLED') or _res.get('fills') or _res.get('orderId'))
+                            if not _filled:
+                                log.warning(f"ORPHAN {sym}: SELL returned no fill — NOT counting as sold ({_res})")
+                                continue
+                            _sold.append(o)
                             _entry = {
-                                "ts": datetime.now(_tz2.utc).isoformat(),
-                                "pair": sym,
-                                "action": "FORCE_CLOSE",
-                                "qty": o['qty'],
-                                "entry": 0,
+                                "ts": datetime.now(_tz2.utc).isoformat(), "pair": sym,
+                                "action": "FORCE_CLOSE", "qty": o['qty'], "entry": 0,
                                 "exit": round(o['usd'] / o['qty'], 6) if o['qty'] > 0 else 0,
-                                "pnl": 0.0,
-                                "strategy": "ORPHAN_RECONCILER",
-                                "reason": f"ORPHAN — untracked {sym} on Binance, auto-sold ${o['usd']:.2f}",
+                                "pnl": 0.0, "strategy": "ORPHAN_RECONCILER",
+                                "reason": f"ORPHAN — untracked {sym}, auto-sold ${o['usd']:.2f}",
                             }
                             with open(_journal_path2, 'a') as _jf:
                                 _jf.write(json.dumps(_entry, separators=(',',':')) + '\n')
@@ -275,28 +287,26 @@ class PositionReconciler:
                         except Exception as e:
                             log.warning(f"Failed to auto-sell {sym}: {e}")
 
-                    log.warning("✅ Orphan coins sold. No circuit breaker reset needed.")
-                    if tg:
-                        try: tg.send(f"🧹 <b>ORPHAN AUTO-FIXED</b>\n"
-                                     f"Sold {len(asset_to_alert)} untracked coins "
-                                     f"(${total_orphan_usd:.2f}).\n"
-                                     f"📝 Journal entries written.\n"
-                                     f"🛡️ Drawdown Shield preserved (no reset).")
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                except Exception as e:
-                    log.error(f"Auto-orphan fix failed: {e}")
+                if _sold and tg:
+                    _sold_usd = sum(o['usd'] for o in _sold)
+                    try: tg.send(f"🧹 <b>ORPHAN AUTO-FIXED</b>\n"
+                                 f"Sold {len(_sold)} untracked coin(s) (${_sold_usd:.2f}).\n"
+                                 f"📝 Journal entries written.\n"
+                                 f"🛡️ Drawdown Shield preserved (no reset).")
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
-                alert_msg = "\n".join(
-                    f"  • {o['asset']}: {o['qty']} (${o['usd']})"
-                    for o in asset_to_alert
-                )
-                try:
-                    tg.send(f"🔍 <b>ORPHAN COINS</b>\n"
-                            f"Binance has coins bot doesn't track (${total_orphan_usd:.2f} total)\n"
-                            f"{alert_msg}\n"
-                            f"💡 May be from manual trades or failed position tracking\n"
-                            f"<i>Next alert for same asset in 30min unless value changes ±25%</i>")
-                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                _remaining = [o for o in asset_to_alert if o not in _sold]
+                if _remaining and tg:
+                    alert_msg = "\n".join(
+                        f"  • {o['asset']}: {o['qty']} (${o['usd']})" for o in _remaining)
+                    try:
+                        tg.send(f"🔍 <b>ORPHAN COINS</b>\n"
+                                f"Binance has coins the bot doesn't track "
+                                f"(${sum(o['usd'] for o in _remaining):.2f} total)\n"
+                                f"{alert_msg}\n"
+                                f"💡 May be a still-settling deposit, a manual trade, or auto-sell is off\n"
+                                f"<i>Next alert for same asset in 30min unless value changes ±25%</i>")
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
         if not ghosts and not drifts and not orphans:
             log.debug("✅ Reconciliation OK — bot matches Binance")
