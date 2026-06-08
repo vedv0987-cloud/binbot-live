@@ -86,6 +86,11 @@ class Config:
     # USDT bot can use it). Set False to only ALERT and leave the coin for you to convert
     # manually. (Only ever sells coins that actually fill — see reconciler.py.)
     ORPHAN_AUTO_SELL: bool = True
+    # v18.9.13: BTC crash guard. The old logic panic-SOLD everything at a 5% BTC drop, which
+    # churned (sell-all -> rebuy -> sell-all). This version only PAUSES new entries when BTC is
+    # down >= BTC_CRASH_PCT in 24h (no panic-sell -> no churn); existing positions ride their stops.
+    BTC_CRASH_GUARD: bool = True
+    BTC_CRASH_PCT: float = 0.15
 
     MIN_TRADE: float = 5.5  # v15.4 FIX: 10% buffer above Binance $5 MIN_NOTIONAL
     TAKER_FEE: float = 0.00075  # v14.6.2: BNB discount 0.075%
