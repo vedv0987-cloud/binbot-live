@@ -150,7 +150,7 @@ from intelligence import Intel
 from ml import MLPredictor, DXYCorrelation, CoinGeckoTrending, CoinGeckoMovers, WhaleOnChain, MultiExchangeFlow, OptionsSentiment, RLAgent
 
 from local_orderbook import LocalOrderBook
-from execution_algo import ExecutionAlgo
+from execution_algo import ExecutionAlgo, plan_twap_chunks
 from strategies import GridLevel, GridEngine, DCA, Strategies, Backtester
 from micro_price import MicroPriceModel
 from risk import Risk
@@ -807,7 +807,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V18.9.18 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor (see feature-health table below)")
+        log.info("  🚀 BINBOT V19.0 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor + twap-notional-floor (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -876,7 +876,7 @@ class ProBotV11:
         log.info(f"  Pairs: {len(self.cfg.PAIRS)} | Max {self.cfg.MAX_DAILY_TRADES}/day | Scan: {self.cfg.SCAN_SEC}s")
         log.info("━"*70)
 
-        self.tg.send(f"🚀 <b>BinBot V18.9.18 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
+        self.tg.send(f"🚀 <b>BinBot V19.0 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
 
         # v8.3: Sync with Binance — sell ghost coins + cancel orders
         # v8.4 FIX: Only touch assets from PAIRS list — don't sell unrelated holdings
@@ -3085,7 +3085,12 @@ class ProBotV11:
                 # v16.0: Smart Execution Engine TWAP routing
                 log.info(f"📊 {sig.pair} executing order (size ${_final_size:.2f})")
                 _min_chunk = max(self.cfg.MIN_TRADE, self.ex.get_min_notional(sig.pair))  # v18.9.11 FIX C3: per-pair min notional
-                n_chunks = max(1, min(10, int(_final_size / _min_chunk)))
+                # v19.0 FIX: absolute notional floor + sane chunk size. Below TWAP_MIN_USD
+                # send one immediate market fill (a $23 order used to slice into ~4 chunks ->
+                # ~23s latency + 0.295% slip). Above it, target TWAP_CHUNK_USD per chunk but
+                # never below the per-pair min-notional (C3), capped at 10.
+                _chunk_usd = max(self.cfg.TWAP_CHUNK_USD, _min_chunk)
+                n_chunks = plan_twap_chunks(_final_size, self.cfg.TWAP_MIN_USD, _chunk_usd)
                 if n_chunks > 1:
                     result = await self.exec_algo.twap_buy(sig.pair, _final_qty, n_chunks=n_chunks)
                 else:
@@ -3265,7 +3270,7 @@ class ProBotV11:
         self.risk.save_state(self.grid.pnl,self.grid.trades,
                              self.hyperopt.best_params if self.hyperopt else None)
         self.ws.stop()
-        self.tg.send(f"🛑 <b>BinBot V18.9.18 GodMode stopped</b>")  # version string
+        self.tg.send(f"🛑 <b>BinBot V19.0 GodMode stopped</b>")  # version string
         # v13.5.5: stop dashboard cleanly
         try:
             if getattr(self, "_dashboard", None):

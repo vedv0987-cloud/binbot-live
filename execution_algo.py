@@ -5,6 +5,31 @@ import time
 
 log = logging.getLogger('binbot')
 
+
+def plan_twap_chunks(size_usd, min_usd, chunk_usd, max_chunks=10):
+    """v19.0: decide how many TWAP chunks an order should be sliced into.
+
+    Returns 1 (-> a single immediate market order) for any order below `min_usd`:
+    at small notional the market impact is ~zero, so slicing only adds latency
+    (a 5-15s sleep PER chunk) and slippage. Above the floor, target ~`chunk_usd`
+    per chunk (the caller passes max(TWAP_CHUNK_USD, the v18.9.11 C3 per-pair
+    min-notional), so each chunk still clears MIN_NOTIONAL), capped at `max_chunks`.
+
+    Fixes the live pathology where int(size/_min_chunk) sliced a $23 order into
+    ~4 chunks -> ~23s latency + 0.295% slip. Pure function — unit-tested in
+    test_core.py.
+    """
+    try:
+        size_usd = float(size_usd)
+        min_usd = float(min_usd)
+        chunk_usd = float(chunk_usd)
+    except (TypeError, ValueError):
+        return 1
+    if size_usd < min_usd or chunk_usd <= 0:
+        return 1
+    return max(1, min(int(max_chunks), int(size_usd / chunk_usd)))
+
+
 class ExecutionAlgo:
     """
     v16: Smart Execution Engine (TWAP / Iceberg Slicer)

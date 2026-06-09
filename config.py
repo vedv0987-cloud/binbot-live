@@ -93,6 +93,13 @@ class Config:
     BTC_CRASH_PCT: float = 0.15
 
     MIN_TRADE: float = 5.5  # v15.4 FIX: 10% buffer above Binance $5 MIN_NOTIONAL
+    # v19.0: TWAP execution gating. Below TWAP_MIN_USD an order is sent as a single
+    # immediate market fill (no slicing) — at retail notional market impact is ~zero, so
+    # slicing only added 10-30s latency + slippage (a $23 order -> ~4 chunks -> ~23s).
+    # Above the floor we target ~TWAP_CHUNK_USD per chunk (never below the v18.9.11 C3
+    # per-pair min-notional), capped at 10 chunks.
+    TWAP_MIN_USD: float = 150.0
+    TWAP_CHUNK_USD: float = 50.0
     TAKER_FEE: float = 0.00075  # v14.6.2: BNB discount 0.075%
     MAKER_FEE: float = 0.0     # v14.6.2: LIMIT_MAKER = 0% maker fee
 

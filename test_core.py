@@ -915,5 +915,27 @@ class TestConfigHardening(unittest.TestCase):
         self.assertIn("MAX_SL_PCT", joined)
 
 
+class TestTwapChunkPlanning(unittest.TestCase):
+    """v19.0: TWAP must not slice tiny retail orders (latency + slippage guard)."""
+
+    def test_small_order_is_single_fill(self):
+        from execution_algo import plan_twap_chunks
+        # The live bug: a $23 order was sliced into ~4 chunks -> ~23s latency + slip.
+        self.assertEqual(plan_twap_chunks(23.10, 150.0, 50.0), 1)
+        self.assertEqual(plan_twap_chunks(90.0, 150.0, 50.0), 1)    # NORMAL-tier per-position size
+        self.assertEqual(plan_twap_chunks(149.99, 150.0, 50.0), 1)  # just below the floor
+
+    def test_large_order_slices_by_chunk_size(self):
+        from execution_algo import plan_twap_chunks
+        self.assertEqual(plan_twap_chunks(150.0, 150.0, 50.0), 3)   # 150/50 = 3 chunks
+        self.assertGreaterEqual(plan_twap_chunks(300.0, 150.0, 50.0), 2)
+        self.assertEqual(plan_twap_chunks(600.0, 150.0, 50.0), 10)  # capped at 10
+
+    def test_degenerate_inputs_default_to_single(self):
+        from execution_algo import plan_twap_chunks
+        self.assertEqual(plan_twap_chunks("bad", 150.0, 50.0), 1)
+        self.assertEqual(plan_twap_chunks(500.0, 150.0, 0), 1)      # chunk_usd <= 0 -> single
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
