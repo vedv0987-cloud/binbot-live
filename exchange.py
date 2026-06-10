@@ -722,6 +722,25 @@ class Exchange:
         return await self._signed_get("/api/v3/order",
                                       {"symbol": symbol, "orderId": orderId})
 
+    async def enable_bnb_burn(self):
+        """v19.1.0: ensure SPOT trading fees are paid in BNB (0.10% → 0.075%, a 25% saving).
+        Best-effort: read current /sapi/v1/bnb/burn status, enable it only if currently off.
+        Returns True if effectively on, False if still off, None on error. FAIL-SAFE — never
+        raises into boot; if the key lacks SAPI permission the operator can toggle it manually
+        in the Binance app (Settings → 'Use BNB to pay fees')."""
+        try:
+            status = await self._signed_get("/sapi/v1/bnb/burn")
+            if isinstance(status, dict) and status.get("spotBNBBurn"):
+                log.info("  🪙 BNB fee-burn already ON (fees at 0.075%)")
+                return True
+            res = await self._signed_post("/sapi/v1/bnb/burn", {"spotBNBBurn": "true"})
+            on = bool(res.get("spotBNBBurn")) if isinstance(res, dict) else False
+            log.info(f"  🪙 BNB fee-burn {'ENABLED (fees now 0.075%)' if on else 'toggle returned OFF — set it manually in the app'}")
+            return on
+        except Exception as e:
+            log.warning(f"BNB fee-burn enable failed (toggle manually in Binance app): {e}")
+            return None
+
     async def get_my_trades(self, symbol, orderId=None):
         """Get trade fills for a symbol (optionally filtered by orderId)."""
         params = {"symbol": symbol}

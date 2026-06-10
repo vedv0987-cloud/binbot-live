@@ -48,6 +48,9 @@ class MockConfig:
     # v18.9.0 Session filter — OFF in tests so the other can_trade tests are unaffected;
     # the logic is exercised directly via _session_ok in TestSessionFilter.
     SESSION_FILTER_ENABLED = False
+    # v19.1.0 Session-bias size multiplier — OFF in tests (uses wall-clock time, which would
+    # make size assertions non-deterministic); exercised directly via _session_bias in tests.
+    SESSION_BIAS_ENABLED = False
     SESSION_DST_AUTOSHIFT = True
     SESSION_GOLDEN = (1110, 1350)
     SESSION_WINDOWS = (
@@ -477,6 +480,71 @@ class TestSLFloorRelocation(unittest.TestCase):
         # size should be risk_amount/0.10 = $1000, not $500 (pre-v13.5 used uncapped 0.20)
         self.assertAlmostEqual(size, 1000.0, delta=20,
             msg=f"size ${size} doesn't match capped 10% SL")
+
+
+class TestV191ProfitGates(unittest.TestCase):
+    """v19.1.0: net-edge gate, chop veto, and session-bias multiplier."""
+
+    def setUp(self):
+        self.cfg = MockConfig()
+        self.cfg.USE_KELLY = False
+        self.cfg.MIN_TRADE = 0.01
+        self.cfg.MAX_HEAT = 1.0
+        self.cfg.TOTAL_CAPITAL = 100_000.0
+        self.cfg.risk_amount = 1000.0
+        self.cfg.MAX_EXPOSURE = 0.95
+        self.sm = MockStateManager()
+        with patch('risk.KellySizer', return_value=MagicMock(trade_history=[])), \
+             patch('risk.EventCalendar', return_value=MockMonitor()), \
+             patch('risk.MVRVMonitor'), \
+             patch('risk.OpenInterestMonitor'), \
+             patch('risk.TokenUnlockMonitor', return_value=MockMonitor()), \
+             patch('risk.TVLMonitor'), \
+             patch('risk.WhaleWalletMonitor'), \
+             patch('risk.StablecoinFlow'):
+            from risk import Risk
+            self.risk = Risk(self.cfg, self.sm)
+
+    def test_net_edge_gate_blocks_fee_fragile_scalp(self):
+        """A tiny-TP scalp that can't clear 2×fee + 2×slippage is rejected as LowEdge."""
+        self.cfg.NET_EDGE_GATE_ENABLED = True
+        # TP only +0.4% on a 3% SL — gross move can't cover round-trip cost (~0.4% here).
+        sig = make_signal(pair="BTCUSDT", price=100.0, sl=97.0, tp=100.4)
+        ok, reason, size = self.risk.can_trade(sig)
+        self.assertFalse(ok, "fee-fragile scalp should be blocked")
+        self.assertIn("LowEdge", reason)
+
+    def test_net_edge_gate_allows_real_setup(self):
+        """A normal multi-percent TP clears the net-edge gate."""
+        self.cfg.NET_EDGE_GATE_ENABLED = True
+        sig = make_signal(pair="BTCUSDT", price=100.0, sl=97.0, tp=106.0)  # +6% TP
+        ok, reason, size = self.risk.can_trade(sig)
+        self.assertTrue(ok, f"real setup wrongly blocked: {reason}")
+
+    def test_chop_veto_blocks_non_top_grade_in_chop(self):
+        """In CHOPPY regime, a sub-A+ signal is vetoed; an A+ still passes."""
+        self.cfg.CHOP_VETO_ENABLED = True
+        self.risk._last_regime = "CHOPPY"
+        sig_b = make_signal(pair="BTCUSDT", price=100.0, sl=97.0, tp=106.0, grade="A")
+        ok, reason, _ = self.risk.can_trade(sig_b)
+        self.assertFalse(ok, "sub-A+ chop entry should be vetoed")
+        self.assertEqual(reason, "ChopVeto")
+        sig_a = make_signal(pair="ETHUSDT", price=100.0, sl=97.0, tp=106.0, grade="A+")
+        ok2, reason2, _ = self.risk.can_trade(sig_a)
+        self.assertTrue(ok2, f"A+ should pass chop veto: {reason2}")
+
+    def test_session_bias_bounds(self):
+        """_session_bias returns a bounded multiplier and the documented values."""
+        from datetime import datetime, timezone
+        self.cfg.SESSION_BIAS_ENABLED = True
+        mon = datetime(2026, 6, 8, 12, 0, tzinfo=timezone.utc)   # Monday → Asia-open momentum
+        self.assertAlmostEqual(self.risk._session_bias(mon), 1.10)
+        wed_night = datetime(2026, 6, 10, 3, 0, tzinfo=timezone.utc)  # Wed 03:00 dead zone
+        self.assertAlmostEqual(self.risk._session_bias(wed_night), 0.90)
+        wed_day = datetime(2026, 6, 10, 15, 0, tzinfo=timezone.utc)   # Wed 15:00 neutral
+        self.assertAlmostEqual(self.risk._session_bias(wed_day), 1.0)
+        self.cfg.SESSION_BIAS_ENABLED = False
+        self.assertEqual(self.risk._session_bias(mon), 1.0)
 
 
 class TestPreEventHours(unittest.TestCase):

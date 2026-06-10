@@ -283,6 +283,25 @@ class Config:
     HYBRID_MAKER_SKIP_STRATEGIES: tuple = ("MICRO_PRICE", "AGGRESSOR_FLOW", "QFL_PANIC")
     HYBRID_MAKER_SKIP_REGIMES: tuple = ("TREND_UP",)
 
+    # ── v19.1.0 PROFITABILITY FEATURES (research-driven; small-account-focused) ──────
+    # Feature 1: BNB fee discount + net-edge gate. For a $50-250 account, fee drag is the
+    # #1 P&L leak. Pay fees in BNB (0.1%→0.075%) and refuse trades that can't clear cost.
+    FEE_BNB_AUTO_ENABLE: bool = True     # call /sapi/v1/bnb/burn at boot so TAKER_FEE 0.075% is real
+    NET_EDGE_GATE_ENABLED: bool = True   # reject entries whose TP can't clear round-trip cost + margin
+    SLIPPAGE_BUF: float = 0.0010         # 0.10%/side assumed slippage (conservative)
+    MIN_NET_EDGE: float = 0.0030         # require ≥0.30% NET edge to TP after 2×fee + 2×slippage
+    # Feature 3: chop veto — "not trading" is the highest-EV action in range-bound chop.
+    CHOP_VETO_ENABLED: bool = True       # block new entries in CHOPPY regime unless top-grade
+    CHOP_VETO_ALLOW_GRADE: str = "A+"    # grade still allowed to enter during chop
+    # Feature 4: volatility-target sizing (exposes the previously-hardcoded values; defaults
+    # are the exact prior constants, so this is behaviour-neutral until tuned).
+    VOL_TARGET: float = 0.010            # 1.0% target ATR% — calm→size up, volatile→size down
+    VOL_SCALAR_MIN: float = 0.50
+    VOL_SCALAR_MAX: float = 1.50
+    # Feature 5: session-bias — documented crypto seasonality (Asia-open Mon momentum;
+    # dead US-overnight window). Bounded SIZE multiplier, re-clamped to exposure caps.
+    SESSION_BIAS_ENABLED: bool = True
+
     # v15.14: 3-rung real-profit ladder.
     # Removed the +0.68% early lock — was generating +0.5% consolation exits in CHOPPY.
     # Philosophy: real profits or clean SL. No tiny consolation prizes.
@@ -732,6 +751,15 @@ class Config:
             warns.append(f"NORMAL_SIZE_PCT={self.NORMAL_SIZE_PCT} out of (0,1]")
         if not (0 < self.NORMAL_EXPOSURE <= 1.0):
             warns.append(f"NORMAL_EXPOSURE={self.NORMAL_EXPOSURE} out of (0,1]")
+        # v19.1.0 profitability-feature bounds
+        if not (0 <= self.MIN_NET_EDGE <= 0.05):
+            warns.append(f"MIN_NET_EDGE={self.MIN_NET_EDGE} out of [0, 0.05] — too high will starve entries")
+        if not (0 <= self.SLIPPAGE_BUF <= 0.02):
+            warns.append(f"SLIPPAGE_BUF={self.SLIPPAGE_BUF} out of [0, 0.02]")
+        if not (0 < self.VOL_TARGET <= 0.10):
+            warns.append(f"VOL_TARGET={self.VOL_TARGET} out of (0, 0.10]")
+        if self.VOL_SCALAR_MAX < self.VOL_SCALAR_MIN:
+            warns.append(f"VOL_SCALAR_MAX={self.VOL_SCALAR_MAX} < VOL_SCALAR_MIN={self.VOL_SCALAR_MIN}")
         if self.MAX_SL_PCT < self.STOP_LOSS_PCT:
             warns.append(f"MAX_SL_PCT={self.MAX_SL_PCT} < STOP_LOSS_PCT={self.STOP_LOSS_PCT} (ceiling below floor)")
         for w in warns:

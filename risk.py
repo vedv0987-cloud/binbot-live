@@ -282,6 +282,28 @@ class Risk:
         except Exception:
             return True, "err-allow"
 
+    def _session_bias(self, now=None):
+        """v19.1.0: global session-prior SIZE multiplier from documented crypto seasonality.
+        • Asia-open momentum: Sunday 23:00 UTC → Monday 23:00 UTC trends positive
+          (Concretum/Quantpedia intraday-seasonality studies) → mild size-up (1.10×).
+        • Dead US-overnight window (weekdays 01:00-06:00 UTC) is low-liquidity / mean-
+          reverting (Springer 2024 intraday-liquidity study) → mild size-down (0.90×).
+        Bounded [0.90, 1.10]; the caller re-clamps any up-bias to the exposure caps so it
+        can never breach MAX_EXPOSURE. Fails to 1.0 on any error or when disabled.
+        `now` lets tests inject a deterministic UTC datetime."""
+        if not getattr(self.cfg, 'SESSION_BIAS_ENABLED', True):
+            return 1.0
+        try:
+            now = now or datetime.now(timezone.utc)
+            dow, h = now.weekday(), now.hour   # dow: 0=Mon … 6=Sun
+            if (dow == 6 and h >= 23) or dow == 0:     # Sun 23:00 → end of Mon (Asia-open momentum)
+                return 1.10
+            if dow <= 4 and 1 <= h < 6:                # weekday US-overnight dead zone
+                return 0.90
+            return 1.0
+        except Exception:
+            return 1.0
+
     def can_trade(self, sig, fg=50):
         # v9.2: FOMC/CPI event protection
         # v13.4 fix (Batch 1): docs aligned to actual code behavior.
@@ -407,6 +429,15 @@ class Risk:
         max_heat = self.cfg.FEAR_HEAT if fg < 20 else self.cfg.MAX_HEAT
         if self.portfolio_heat >= max_heat: return False,"HeatMax",0
 
+        # ── v19.1.0 CHOP VETO ──────────────────────────────────────────────────────
+        # Range-bound chop bleeds via fees + whipsaw; not trading is the highest-EV
+        # action there. Block new entries when the live regime is CHOPPY unless the
+        # signal is top-grade (a genuine breakout can still fire). Exits are unaffected.
+        if getattr(self.cfg, 'CHOP_VETO_ENABLED', True):
+            _reg = getattr(self, '_last_regime', 'RANGE')
+            if _reg == 'CHOPPY' and getattr(sig, 'grade', '') != getattr(self.cfg, 'CHOP_VETO_ALLOW_GRADE', 'A+'):
+                return False, "ChopVeto", 0
+
         # v14.6.4 AUDIT FIX: removed dead `if True and len(...) >= 0` wrapper.
         # OLD code: Kelly was called every cycle, its result set `size`, then `size` was
         # IMMEDIATELY overwritten by the 33.33% formula below for Groups A/B/C (and by
@@ -436,6 +467,20 @@ class Risk:
         sl_pct = capped_sl_pct
         # NOTE: `size` is assigned UNCONDITIONALLY below by the 33.33% / GROUP_D formula.
 
+        # ── v19.1.0 NET-EDGE GATE ──────────────────────────────────────────────────
+        # For a small account, fee+slippage drag is the #1 P&L leak. Reject any entry
+        # whose TP target can't clear the round-trip cost (2×fee + 2×slippage) by a
+        # configured margin. Pure protection — only blocks fee-fragile scalps; real
+        # A+ setups (TP several %) sail through. Fails OPEN if TP/price are missing.
+        if getattr(self.cfg, 'NET_EDGE_GATE_ENABLED', True) and sig.price > 0 and getattr(sig, 'tp', 0) > sig.price:
+            _tp_move = (sig.tp - sig.price) / sig.price
+            _rt_cost = 2 * getattr(self.cfg, 'TAKER_FEE', 0.00075) + 2 * getattr(self.cfg, 'SLIPPAGE_BUF', 0.0010)
+            _net_edge = _tp_move - _rt_cost
+            if _net_edge < getattr(self.cfg, 'MIN_NET_EDGE', 0.003):
+                log.info(f"  💸 {sig.pair} LOW-EDGE: TP +{_tp_move*100:.2f}% − cost {_rt_cost*100:.2f}% "
+                         f"= net {_net_edge*100:.2f}% < {getattr(self.cfg,'MIN_NET_EDGE',0.003)*100:.2f}% — skip")
+                return False, f"LowEdge({_net_edge*100:.2f}%)", 0
+
         # v7.2: Drawdown shield — reduce size based on drawdown
         # v19.0.2 (audit LOW-2): per-position cap = MAX_EXPOSURE / MAX_POSITIONS, clamped to
         # [0.20, 0.95]. So NORMAL (0.95/2) = 0.475 — just above NORMAL_SIZE_PCT 0.45, so it does
@@ -452,9 +497,12 @@ class Risk:
         # Formula: scalar = target_vol / realized_vol (ATR%)
         # Example: ATR=0.7% → scalar=1.43 (calm, size up)
         #          ATR=2.0% → scalar=0.50 (volatile, size down to 0.5×)
-        _TARGET_VOL = 0.010  # 1.0% — vol-target (NOT SL floor; SL floor is 3% in strategies.py)
+        # v19.1.0: vol-target + clamps now config-driven (defaults = prior hardcoded values).
+        _TARGET_VOL = getattr(self.cfg, 'VOL_TARGET', 0.010)  # 1.0% — vol-target (NOT SL floor)
+        _vs_min = getattr(self.cfg, 'VOL_SCALAR_MIN', 0.50)
+        _vs_max = getattr(self.cfg, 'VOL_SCALAR_MAX', 1.50)
         _atr_pct = sig.atr / sig.price if sig.price > 0 and sig.atr > 0 else _TARGET_VOL
-        _vol_scalar = max(0.50, min(1.50, _TARGET_VOL / _atr_pct)) if _atr_pct > 0 else 1.0
+        _vol_scalar = max(_vs_min, min(_vs_max, _TARGET_VOL / _atr_pct)) if _atr_pct > 0 else 1.0
         if abs(_vol_scalar - 1.0) > 0.05:
             log.info(f"  📐 {sig.pair} vol-size scalar: {_vol_scalar:.2f}× (ATR={_atr_pct*100:.2f}%)")
 
@@ -579,6 +627,15 @@ class Risk:
             elif _align < 45:
                 size *= 0.8  # Mild disagreement → 20% reduction
         except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+        # v19.1.0 SESSION BIAS: documented session-prior size multiplier (Asia-open Mon up /
+        # dead US-overnight down), re-clamped to the exposure caps so an up-bias can NEVER
+        # breach MAX_EXPOSURE or available balance. Down-bias always applies.
+        _sb = self._session_bias()
+        if _sb != 1.0:
+            _pre = size
+            size = min(size * _sb, self.cfg.TOTAL_CAPITAL * _pos_cap, self.available * 0.90)
+            if abs(size - _pre) > 0.01:
+                log.info(f"  🕒 {sig.pair} session-bias ×{_sb:.2f} → ${_pre:.2f}→${size:.2f}")
         if size<self.cfg.MIN_TRADE: return False,"Small",0
         # v8.3: Fee gate — skip if expected profit < 2x fees
         try:
