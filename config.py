@@ -71,8 +71,9 @@ class Config:
     # 85% size the worst-case stop-out is ~2.5% of equity (and the 5% SL ceiling bounds slip).
     SMALL_TIER_RISK_PCT: float = 0.05   # v18.9.18: raised so 95% actually deploys at the wider stop (worst-case ~5% loss/trade = daily cap)
     NORMAL_MAX_POS: int = 2             # max positions at/above SMALL_TIER_USD (current setting)
-    NORMAL_SIZE_PCT: float = 0.3333     # per-trade fraction at/above SMALL_TIER_USD (current)
-    NORMAL_EXPOSURE: float = 0.75       # max exposure at/above SMALL_TIER_USD (current)
+    NORMAL_SIZE_PCT: float = 0.45      # v18.9.19: 45% per trade at/above $100 (2 positions = ~90% deployed)
+    NORMAL_EXPOSURE: float = 0.95      # v18.9.19: 95% max exposure across 2 positions
+    NORMAL_RISK_PCT: float = 0.025     # v18.9.19: per-trade risk budget at/above $100 so 45% deploys at the wider stop
     CAPITAL_TIER_HYSTERESIS: float = 0.04  # ±4% dead-band around the threshold (anti-flap)
 
     # v18.8: AUTO-ADOPT ORPHAN COINS. On startup, any managed-pair coin sitting in the

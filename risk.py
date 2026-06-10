@@ -506,6 +506,12 @@ class Risk:
                 _str = getattr(self.cfg, 'SMALL_TIER_RISK_PCT', 0)
                 if _str and _str > 0:
                     _risk_budget = self.cfg.TOTAL_CAPITAL * _str
+            else:
+                # v18.9.19: NORMAL tier (>= SMALL_TIER_USD) per-trade budget so the configured
+                # per-trade size (e.g. 45%) actually deploys at the wider stop.
+                _nrp = getattr(self.cfg, 'NORMAL_RISK_PCT', 0)
+                if _nrp and _nrp > 0:
+                    _risk_budget = self.cfg.TOTAL_CAPITAL * _nrp
             _risk_cap = _risk_budget / sl_pct
             if _risk_cap < size:
                 log.info(f"  🛡️ {sig.pair} risk-cap size ${size:.2f}→${_risk_cap:.2f} "
