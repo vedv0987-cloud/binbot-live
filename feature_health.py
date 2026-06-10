@@ -49,6 +49,9 @@ def report(bot, cfg):
             ("Aggressor-flow",                "obj",  g("aggressor_flow")),
             ("Smart-coin detector",           "obj",  g("smart_coin")),
             ("CryptoPanic news",              "obj",  g("crypto_news")),
+            ("Global news (RSS)",             "obj",  g("news")),
+            ("L/S ratio (Binance)",           "obj",  g("long_short")),
+            ("Open interest (Binance)",       "obj",  g("open_interest")),
             ("Momentum scanner",              "obj",  g("momentum")),
             ("Coin profiles",                 "obj",  g("coin_profiles")),
             ("Native SL (exchange-side)",     "obj",  g("native_sl") if getattr(cfg, "NATIVE_SL_ENABLED", False) else None),
@@ -82,12 +85,12 @@ def report(bot, cfg):
                 inactive += 1
             log.info(f"     {label:<32} {disp}")
 
-        # Known placeholders with no implementation in this build (kept as safe no-ops).
+        # v19.0.4: the dead PyTorch/heavy placeholders (lstm, monte_carlo, meta_learner,
+        # model_selector, transformer_nlp) and the noisy ones (social_sentiment, exchange_flow,
+        # hash_rate) were REMOVED from the code. long_short/open_interest are now real (above).
+        # This list only names real-but-optional modules that may legitimately be None.
         placeholder_names = [
-            "dxy", "options", "multi_ex", "whale", "rl", "lstm", "monte_carlo",
-            "meta_learner", "model_selector", "long_short", "open_interest", "hash_rate",
-            "gecko_trending", "gecko_movers", "social_sentiment", "exchange_flow",
-            "transformer_nlp",
+            "dxy", "options", "multi_ex", "whale", "rl", "gecko_trending", "gecko_movers",
         ]
         dead = [n for n in placeholder_names if getattr(bot, n, None) is None]
         if dead:

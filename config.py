@@ -643,7 +643,7 @@ class Config:
     ML_RETRAIN_HOURS: float = 6.0      # min hours between ML retrains
 
     # Additive intelligence scoring (vol_delta/LOB/VPIN/funding/liquidation/momentum/
-    # coin-profile/Azure-OpenAI confidence nudges + journal strategy_weight). AUDIT
+    # coin-profile/news/long-short/open-interest confidence nudges + journal strategy_weight). AUDIT
     # found this entire block was dead — nested behind the never-instantiated ML gate.
     # It is now reachable but kept OFF by default: enabling it changes signal
     # confidence on every trade and MUST be validated on history first. The hard

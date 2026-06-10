@@ -162,8 +162,12 @@ from orderflow import AggressorFlowTracker, VolumeDeltaTracker
 from lob_imbalance import LOBImbalanceTracker
 from intelligence import (FundingRateTracker, LiquidationDetector, SmartCoinDetector,
     CryptoPanicNews, MomentumScanner, LiquidationCascadeTracker, SpotPerpBasisTracker,
-    StatArbSignal, VPINTracker, KalmanPairsSpreader, AzureOpenAIIntelligence,
+    StatArbSignal, VPINTracker, KalmanPairsSpreader,
     TokenUnlockTracker, EconomicCalendar, BinanceAnnouncements)
+# v19.0.4: long/short ratio + open-interest are REAL free-Binance signals (live now);
+# the PyTorch/heavy placeholders (lstm, transformer, meta_learner, monte_carlo,
+# model_selector) and the noisy ones (social, exchange_flow, hash_rate) were removed.
+from ml import LongShortRatio, OpenInterestTracker
 
 class ProBotV11:
     def __init__(self, cfg):
@@ -186,17 +190,17 @@ class ProBotV11:
         self.multi_ex = MultiExchangeFlow()
         self.options = OptionsSentiment()
         self.rl = RLAgent()
-        self.transformer_nlp = None
-        self.meta_learner = None
-        self.monte_carlo = None
-        self.model_selector = None
         self.gecko_trending = CoinGeckoTrending()
         self.gecko_movers = CoinGeckoMovers()
-        self.social_sentiment = None
-        self.exchange_flow = None
-        self.long_short = None
-        self.open_interest = None
-        self.hash_rate = None
+        # v19.0.4: REAL free-Binance-Futures signals (were dead `= None` placeholders).
+        # Both fail-open: on any error / geo-block their get_boost() returns 1.0 (neutral).
+        self.long_short = LongShortRatio()       # contrarian crowd-positioning (globalLongShortAccountRatio)
+        self.open_interest = OpenInterestTracker()  # OI/price divergence trend-confirmation
+        # v19.0.4: global news sentiment (news.py — Google-News RSS, negation-aware, outage-decay).
+        # Now LIVE (was an unused import); feeds ctx.news_score (the 📰 display) + a small conf nudge.
+        self.news = NewsSentiment()
+        self._news_score = 0.0
+        self._news_label = ""
 
         self.intel=Intel(cfg,self.ex)
         # v18.7.1 FIX (D2): pass the micro-price engine into Strategies (was None → the
@@ -242,8 +246,7 @@ class ProBotV11:
         
 
         self.exec_algo = ExecutionAlgo(self.ex)
-        # v16.0.0: LSTM deep learning model (optional — requires PyTorch)
-        self.lstm=None
+        # v19.0.4: LSTM removed (PyTorch can't run on the lite 1GB VM — was a dead `= None` no-op).
         # v8.3: Super-intelligent modules
         # v11.2.10: MTF + LSTM removed (dead code — dict/object mismatch, non-existent imports)
         
@@ -303,7 +306,7 @@ class ProBotV11:
         self.smart_coin=SmartCoinDetector()
         self.crypto_news=CryptoPanicNews()
         self.binance_announce=BinanceAnnouncements(getattr(cfg,'ANNOUNCE_REFRESH_SEC',900))  # v18.9.5: delist/halt gate
-        self.azure_openai = AzureOpenAIIntelligence()
+        # v19.0.4: Azure OpenAI removed entirely (no API key on the VM → always returned 0, dead weight).
         self.momentum=MomentumScanner()
         self.bt=Backtester(self.ex,TA,cfg)
         self.hyperopt=HyperOptimizer(cfg.HYPEROPT_INTERVAL_H) if cfg.HYPEROPT_ENABLED else None
@@ -820,7 +823,7 @@ class ProBotV11:
         log.info("  ----------------------")
 
         log.info("━"*70)
-        log.info("  🚀 BINBOT V19.0.3 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor + twap-notional-floor + heat-cap-fits-2pos + FOMC/unlock-blocks-WIRED (see feature-health table below)")
+        log.info("  🚀 BINBOT V19.0.4 GodMode — audit-hardened core + scale-ladder + session-filter + watchdog(loop-safe) + lean-ML + delist/halt gate + QFL-bear-guard + risk-normalized sizing + SL-resize-on-scaleout + trail-buy-reblocked + block-fail-open-visible + DD-flat-reanchor + twap-notional-floor + heat-cap-fits-2pos + FOMC/unlock-blocks-WIRED + news-LIVE + L/S+OI-signals + azure/dead-placeholders-REMOVED (see feature-health table below)")
         # v15.0 #8 Observability: Prometheus metrics exporter on :9090/metrics
         self._prom = None
         try:
@@ -889,7 +892,7 @@ class ProBotV11:
         log.info(f"  Pairs: {len(self.cfg.PAIRS)} | Max {self.cfg.MAX_DAILY_TRADES}/day | Scan: {self.cfg.SCAN_SEC}s")
         log.info("━"*70)
 
-        self.tg.send(f"🚀 <b>BinBot V19.0.3 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
+        self.tg.send(f"🚀 <b>BinBot V19.0.4 GodMode LIVE</b>\n💰 Cap: ${self.cfg.TOTAL_CAPITAL} | Wallet: ${actual_bal:.2f}\n📦 Positions: {len(self.risk.positions)} | USDT free: ${round(actual_bal - sum(p.size for p in self.risk.positions), 2)}")
 
         # v8.3: Sync with Binance — sell ghost coins + cancel orders
         # v8.4 FIX: Only touch assets from PAIRS list — don't sell unrelated holdings
@@ -1072,15 +1075,6 @@ class ProBotV11:
                     with open(ts_file, "w") as _f: _f.write("ok")  # v15.3 FIX: close file properly
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
-        # v16.0.0: Train LSTM deep learning model
-        if self.lstm:
-            try:
-                btc_candles = await self.ex.klines("BTCUSDT", "5m", 2000)
-                if btc_candles and len(btc_candles) >= 200:
-                    self.lstm.train(btc_candles)
-            except Exception as _le:
-                log.debug(f"LSTM startup train: {_le}")
-
         # v16.0.0: Initialize token unlock tracker + economic calendar
         try: self.token_unlock.update()
         except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
@@ -1096,15 +1090,6 @@ class ProBotV11:
         except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
         try: await asyncio.to_thread(self.options.update)
         except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-        # v8.3: Train LSTM
-        # v8.3: Run Monte Carlo on historical trades
-        if self.monte_carlo:
-            try:
-                past_pnls=[t.get("pnl",0) for t in self.risk.trades if "pnl" in t]
-                if len(past_pnls)>=10: self.monte_carlo.run(past_pnls, self.cfg.TOTAL_CAPITAL)
-            except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-
-
         # v11.2.16: HyperOpt timestamp gate
         if self.hyperopt:
             try:
@@ -1673,23 +1658,18 @@ class ProBotV11:
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.gecko_movers.refresh)
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-            if self.exchange_flow:
-                try:
-                    tickers_24h = await self.ex.get_ticker()
-                    await asyncio.to_thread(self.exchange_flow.refresh, tickers_24h)
-                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-            # v11.2.10: Update new intelligence modules
-            if self.long_short:
-                try: await asyncio.to_thread(self.long_short.update)
-                except Exception as e: log.debug(f"LongShort refresh: {e}")
-            if self.open_interest:
-                try:
-                    btc_p = tickers.get("BTCUSDT", 0)
-                    await asyncio.to_thread(self.open_interest.update, btc_p)
-                except Exception as e: log.debug(f"OI refresh: {e}")
-            if self.hash_rate:
-                try: await asyncio.to_thread(self.hash_rate.update)
-                except Exception as e: log.debug(f"HashRate refresh: {e}")
+            # v19.0.4: REAL Binance signals (long/short ratio + open interest). Fail-open.
+            try: await asyncio.to_thread(self.long_short.update)
+            except Exception as e: log.debug(f"LongShort refresh: {e}")
+            try:
+                btc_p = tickers.get("BTCUSDT", 0)
+                await asyncio.to_thread(self.open_interest.update, btc_p)
+            except Exception as e: log.debug(f"OI refresh: {e}")
+            # v19.0.4: global news sentiment (news.py) — 5-min internal cache, run off-thread.
+            try:
+                _ns, _nl, _ = await asyncio.to_thread(self.news.get_sentiment)
+                self._news_score, self._news_label = _ns, _nl
+            except Exception as e: log.debug(f"News refresh: {e}")
             # v12.0: Aggressor flow tracker
             try: await asyncio.to_thread(self.aggressor_flow.update, ["BTCUSDT","ETHUSDT","SOLUSDT"])
             except Exception as e: log.debug(f"AggressorFlow refresh: {e}")
@@ -1737,18 +1717,7 @@ class ProBotV11:
             try: await asyncio.to_thread(self.econ_calendar.update)
             except Exception as e: log.debug(f"EconCalendar refresh: {e}")
         if self.cycles % 60 == 0:  # Every 15 min
-            if self.meta_learner:
-                try: self.meta_learner.update_weights()
-                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-            if self.model_selector:
-                try: self.model_selector.evaluate()
-                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-            # v8.4: Social sentiment (slower refresh — 15min)
-            if self.social_sentiment:
-                try:
-                    coins = [p["n"] for p in self.cfg.PAIRS[:10]]
-                    await asyncio.to_thread(self.social_sentiment.refresh, coins)
-                except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            # v19.0.4: meta_learner / model_selector / social_sentiment removed (dead no-ops).
             try: await asyncio.to_thread(self.dxy.update)
             except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
             try: await asyncio.to_thread(self.options.update)
@@ -1924,6 +1893,12 @@ class ProBotV11:
 
         # Context with portfolio heat
         ctx=self.intel.context(self.risk.portfolio_heat)
+        # v19.0.4: overlay live global-news sentiment (news.py) onto ctx — makes the 📰 display
+        # real (was permanently +0.00) and lets the BEAR/regime logic see genuine news risk.
+        try:
+            ctx.news_score = self._news_score
+            if self._news_label: ctx.news_label = self._news_label
+        except Exception as _e: log.debug(f"news ctx overlay: {_e}")
         # v14.6.2: pass regime to risk for Group D gate
         self.risk._last_regime = ctx.regime
         # v16.0.0 AUDIT FIX (D5): expose full ctx so risk.check_exits' BEAR time-exit can
@@ -2720,7 +2695,7 @@ class ProBotV11:
         # v16.0.0 AUDIT FIX (D1 structural): this whole block was gated behind
         # `if self.ml ...`, but self.ml was always None — so the ML boost AND the
         # additive intelligence scoring (incl. LIVE modules vol_delta/lob/vpin/funding/
-        # liquidation/momentum/coin_profiles/azure_openai) AND the journal
+        # liquidation/momentum/coin_profiles/news) AND the journal
         # strategy_weight nudge NEVER ran in any prior build. Decoupled into two flags
         # so each is independently enable-able after backtesting. BOTH default OFF →
         # live behavior is byte-identical to v18.4 until the operator opts in.
@@ -2787,31 +2762,19 @@ class ProBotV11:
                     try: adjustments.append(("whale", _adj(self.whale.get_boost(), 0.08)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
-                    # Market microstructure (medium weight)
-                    if self.long_short:
-                        try: adjustments.append(("ls_ratio", _adj(self.long_short.get_boost(), 0.10)))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    if self.open_interest:
-                        try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    if self.exchange_flow:
-                        try: adjustments.append(("ex_flow", _adj(self.exchange_flow.get_boost(sig.pair), 0.06)))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    # Market microstructure (medium weight) — v19.0.4: long_short + open_interest
+                    # are now REAL Binance signals (always instantiated). exchange_flow removed.
+                    try: adjustments.append(("ls_ratio", _adj(self.long_short.get_boost(), 0.10)))
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    try: adjustments.append(("oi", _adj(self.open_interest.get_boost(), 0.08)))
+                    except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
                     # Supplementary modules (lower weight)
                     try: adjustments.append(("gecko_t", _adj(self.gecko_trending.get_boost(sig.pair), 0.04)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("gecko_m", _adj(self.gecko_movers.get_boost(sig.pair), 0.04)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    if self.social_sentiment:
-                        try: adjustments.append(("social", _adj(self.social_sentiment.get_boost(sig.pair), 0.03)))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    if self.transformer_nlp:
-                        try: adjustments.append(("nlp", _adj(self.transformer_nlp.get_boost(), 0.03)))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    if self.hash_rate:
-                        try: adjustments.append(("hash", _adj(self.hash_rate.get_boost(), 0.03)))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    # v19.0.4: social_sentiment / transformer_nlp / hash_rate boosts removed (dead no-ops).
                     # v12.0: Aggressor flow
                     try: adjustments.append(("aggflow", _adj(self.aggressor_flow.get_boost(sig.pair), 0.07)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
@@ -2843,18 +2806,11 @@ class ProBotV11:
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("cnews", _adj(self.crypto_news.get_boost(sig.pair), 0.05)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
-                    
+                    # v19.0.4: global news sentiment (news.py) — replaces dead Azure OpenAI block.
+                    # _news_score ∈ [-1,1] → mild ±8% conf nudge (news bounds, never drives, entries).
                     try:
-                        # Feed headlines to Azure OpenAI for a human-like sentiment boost
-                        hot_headlines = [ev["headline"] for ev in getattr(self.crypto_news, '_hot_events', [])]
-                        if not hot_headlines and hasattr(self.crypto_news, '_sources'):
-                            # Fallback if no hot events: just pass general context
-                            hot_headlines = ["Crypto market volatility increasing", "Bitcoin testing major resistance"]
-                        if hot_headlines:
-                            oai_score = self.azure_openai.analyze_news(hot_headlines, sig.pair)
-                            if oai_score != 0:
-                                oai_boost = 1.0 + (oai_score * 0.15) # +/- 15%
-                                adjustments.append(("openai", _adj(oai_boost, 0.15)))
+                        _news_boost = 1.0 + (self._news_score * 0.10)
+                        adjustments.append(("news", _adj(_news_boost, 0.08)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
                     try: adjustments.append(("momentum", _adj(self.momentum.get_boost(sig.pair), 0.06)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
@@ -2866,18 +2822,7 @@ class ProBotV11:
                         adjustments.append(("rl", _adj(rl_b, 0.08)))
                     except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
 
-                    # Monte Carlo risk penalty
-                    if self.monte_carlo and self.monte_carlo.should_reduce_risk():
-                        adjustments.append(("mc_risk", -0.04))
-
-                    # v16.0.0: LSTM deep learning boost
-                    if self.lstm:
-                        try:
-                            lstm_prob = self.lstm.predict(c5d)
-                            if lstm_prob != 0.5:  # 0.5 = neutral/unavailable
-                                lstm_adj = (lstm_prob - 0.5) * 0.20  # ±10% max
-                                adjustments.append(("lstm", lstm_adj))
-                        except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+                    # v19.0.4: Monte Carlo + LSTM boosts removed (dead no-ops; LSTM needs PyTorch).
 
                     # v16.0.0: Token unlock confidence penalty
                     try:
@@ -3283,7 +3228,7 @@ class ProBotV11:
         self.risk.save_state(self.grid.pnl,self.grid.trades,
                              self.hyperopt.best_params if self.hyperopt else None)
         self.ws.stop()
-        self.tg.send(f"🛑 <b>BinBot V19.0.3 GodMode stopped</b>")  # version string
+        self.tg.send(f"🛑 <b>BinBot V19.0.4 GodMode stopped</b>")  # version string
         # v13.5.5: stop dashboard cleanly
         try:
             if getattr(self, "_dashboard", None):
