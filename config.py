@@ -431,6 +431,14 @@ class Config:
     BINANCE_ANNOUNCE_ENABLED: bool = True
     ANNOUNCE_REFRESH_SEC: int = 900
 
+    # v19.0.3: FOMC/CPI/NFP macro-event hard block (audit: should_block() was computed but
+    # NEVER called — bot traded straight through Fed prints). Now wired in _apply_hard_risk_blocks.
+    # Blocks NEW entries only, in the EconomicCalendar window (2h before → 30min after). FAIL-OPEN.
+    ECON_CALENDAR_BLOCK: bool = True
+    # v19.0.3: Token-unlock cliff block (audit: should_block() was never called). Wired now.
+    # Only fires when a coin has a KNOWN_UNLOCKS entry within 14 days and ≥5% supply. FAIL-OPEN.
+    TOKEN_UNLOCK_BLOCK: bool = True
+
     # v13.5: pre-event lead time (hours BEFORE event-day start to begin blocking).
     # Default 0 keeps original v13.4 behavior (only blocks last 12h before
     # event-day end). Set to e.g. 6 to block from 6h before event-day midnight
