@@ -437,13 +437,10 @@ class Risk:
         # NOTE: `size` is assigned UNCONDITIONALLY below by the 33.33% / GROUP_D formula.
 
         # v7.2: Drawdown shield — reduce size based on drawdown
-        # v13.5.7 FIX #1 (May 21, 2026): per-position cap now scales with MAX_POSITIONS.
-        # Was: hard-coded 0.25 (75%/3 slots). MAX_POSITIONS dropped to 2 in v14.0
-        # but this cap stayed at 25%, leaving 25% of capital unreachable. At small
-        # capital, the over-tight cap pushed sizing below Binance MIN_NOTIONAL once
-        # other multipliers (DD shield, closs) stacked. Formula: 0.75/MAX_POSITIONS,
-        # clamped to [0.25, 0.50] so this never goes wildly outside expected range
-        # (e.g. MAX_POSITIONS=1 would give 75% — too aggressive).
+        # v19.0.2 (audit LOW-2): per-position cap = MAX_EXPOSURE / MAX_POSITIONS, clamped to
+        # [0.20, 0.95]. So NORMAL (0.95/2) = 0.475 — just above NORMAL_SIZE_PCT 0.45, so it does
+        # not clip the intended 45% size; SMALL (0.95/1) = 0.95 = full SMALL_TIER_SIZE_PCT.
+        # (Earlier versions hard-coded 0.25 then 0.75/MAX_POSITIONS; both are gone.)
         _pos_cap = max(0.20, min(0.95, self.cfg.MAX_EXPOSURE / max(self.cfg.MAX_POSITIONS, 1)))
 
         # v14.6.2: Volatility-targeting size scalar

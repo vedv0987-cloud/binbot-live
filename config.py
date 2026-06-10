@@ -392,7 +392,9 @@ class Config:
     REGIME_ENABLED: bool = True
 
     # v7: Portfolio Heat
-    MAX_HEAT: float = 0.05  # v13.5.5: aligned with handoff (was 0.06)
+    MAX_HEAT: float = 0.07  # v19.0.2: was 0.05 — raised so both NORMAL slots (2×45% @ up to
+                            # MAX_SL_PCT 7%) can fill; 2×0.45×0.07≈0.063 needs headroom. Per-trade
+                            # dollar-risk is still bounded by risk-normalize (≤2.5% NORMAL each).
     # v9.8 PER-GROUP GATES: replaces flat 0.8% with per-group thresholds
     # v11.2: Re-calibrated for 5m candles (gates are applied to 5m ATR in bot.py).
     # Old values (0.60–0.80) were 15m-scale and filtered ~all signals on 5m timeframe.
@@ -405,7 +407,9 @@ class Config:
         "C": 0.25,  # v11.2: Mid caps — was 0.70
         "D": 0.30,  # v11.2: DeFi/AI/Memes — was 0.80
     })
-    FEAR_HEAT: float = 0.03  # v9.1: 3% in extreme fear (was 2%, too tight for $52)
+    FEAR_HEAT: float = 0.045  # v19.0.2: was 0.03 — let two NORMAL positions at the floor stop
+                              # (2×0.45×0.045≈0.0405) still fill during extreme fear, while staying
+                              # tighter than MAX_HEAT so wide-stop entries are throttled when scared.
 
     # v7: Anti-Martingale
     PYRAMID_ENABLED: bool = False  # v8.4: don't add with $53
@@ -711,6 +715,15 @@ class Config:
             warns.append(f"SMALL_TIER_SIZE_PCT={self.SMALL_TIER_SIZE_PCT} out of (0,1]")
         if not (0 < self.SMALL_TIER_EXPOSURE <= 1.0):
             warns.append(f"SMALL_TIER_EXPOSURE={self.SMALL_TIER_EXPOSURE} out of (0,1]")
+        # v19.0.2 (audit LOW-1): the NORMAL_* fields the tier manager mutates live had no bounds.
+        # _switch() clamps size/exposure to [0,1], but NORMAL_RISK_PCT is unclamped anywhere — a
+        # fat-finger (e.g. 0.25) would silently 10× the per-trade dollar-risk ceiling in can_trade.
+        if not (0 < self.NORMAL_RISK_PCT <= 0.05):
+            warns.append(f"NORMAL_RISK_PCT={self.NORMAL_RISK_PCT} out of (0, 0.05] — single-trade loss could be excessive")
+        if not (0 < self.NORMAL_SIZE_PCT <= 1.0):
+            warns.append(f"NORMAL_SIZE_PCT={self.NORMAL_SIZE_PCT} out of (0,1]")
+        if not (0 < self.NORMAL_EXPOSURE <= 1.0):
+            warns.append(f"NORMAL_EXPOSURE={self.NORMAL_EXPOSURE} out of (0,1]")
         if self.MAX_SL_PCT < self.STOP_LOSS_PCT:
             warns.append(f"MAX_SL_PCT={self.MAX_SL_PCT} < STOP_LOSS_PCT={self.STOP_LOSS_PCT} (ceiling below floor)")
         for w in warns:
