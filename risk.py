@@ -579,10 +579,16 @@ class Risk:
         if _eq_mult < 1.0:
             _ma_val = sum([e for _,e in self._equity_samples[-10:]]) / max(len(self._equity_samples[-10:]),1)
             log.info(f"📉 {sig.pair} equity below MA (${_ma_val:.2f}) → size ×{_eq_mult} (${size:.2f}→${size*_eq_mult:.2f})")
-            if self.tg:
+            # v19.1.1 FIX: only Telegram-alert when the multiplier CHANGES. This block runs on
+            # every entry-sizing pass, so it was re-sending the alert every cycle while equity
+            # sat below the MA (the spam). The size reduction itself is unchanged.
+            if self.tg and _eq_mult != getattr(self, '_last_eq_alert_mult', 1.0):
                 try: self.tg.send(f"📉 <b>EQUITY CURVE</b> — sizing reduced ×{_eq_mult}\nEquity below {len(self._equity_samples[-10:])}d MA")
                 except Exception as _e: __import__("logging").getLogger("binbot").warning(f"Ignored exception: {_e}")
+            self._last_eq_alert_mult = _eq_mult
             size *= _eq_mult
+        else:
+            self._last_eq_alert_mult = 1.0
         # v16.0: Daily volatility harvesting — reduce size on big days / losing days.
         # Paper §5.3: rebalancing bots siphon excess profits into stablecoins during rallies.
         # Your version: scale back new position sizes to protect daily gains.
